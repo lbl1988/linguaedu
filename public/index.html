@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinguaEdu · 多语种沉浸式学习平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif; }
+    .fade-in { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .glass { backdrop-filter: blur(12px); background: rgba(255,255,255,0.7); }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .speaking-wave { animation: wave 1s infinite; }
+    @keyframes wave { 0%,100% { transform: scaleY(0.3);} 50% { transform: scaleY(1);} }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen">
+  <div id="app"></div>
+
+  <script>
+    const state = {
+      user: JSON.parse(localStorage.getItem('lingua_user') || 'null'),
+      token: localStorage.getItem('lingua_token') || '',
+      currentPage: 'home',
+      currentCourse: null,
+      currentLesson: null
+    };
+
+    const _store = { courses: {}, lessons: {} };
+    const storeObj = (prefix, obj) => {
+      const id = prefix + '_' + Math.random().toString(36).slice(2, 9);
+      if (prefix === 'course') _store.courses[id] = obj;
+      else _store.lessons[id] = obj;
+      return id;
+    };
+    const getStored = (prefix, id) => prefix === 'course' ? _store.courses[id] : _store.lessons[id];
+
+    const $ = (id) => document.getElementById(id);
+    const api = {
+      async get(path) {
+        const headers = state.token ? { 'Authorization': 'Bearer ' + state.token } : {};
+        const res = await fetch(path, { headers });
+        return res.json();
+      },
+      async post(path, data) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
+        const res = await fetch(path, { method: 'POST', headers, body: JSON.stringify(data) });
+        return res.json();
+      },
+      async put(path, data) {
+        const headers = { 'Content-Type': 'application/json' };
+        if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
+        const res = await fetch(path, { method: 'PUT', headers, body: JSON.stringify(data) });
+        return res.json();
+      }
+    };
+
+    function saveAuth(data) {
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem('lingua_token', data.token);
+      localStorage.setItem('lingua_user', JSON.stringify(data.user));
+    }
+
+    function logout() {
+      state.token = '';
+      state.user = null;
+      localStorage.removeItem('lingua_token');
+      localStorage.removeItem('lingua_user');
+      navigate('home');
+      render();
+    }
+
+    function navigate(page, params = {}) {
+      state.currentPage = page;
+      Object.assign(state, params);
+      window.scrollTo(0, 0);
+      render();
+    }
+
+    const pages = {
+      home: renderHome,
+      login: renderLogin,
+      register: renderRegister,
+      courses: renderCourses,
+      course: renderCourse,
+      lesson: renderLesson,
+      dashboard: renderDashboard,
+      community: renderCommunity,
+      achievements: renderAchievements
+    };
+
+    async function render() {
+      const app = $('app');
+      app.innerHTML = '';
+      app.appendChild(renderNavbar());
+      const content = document.createElement('div');
+      content.className = 'max-w-7xl mx-auto px-4 py-6 fade-in';
+      app.appendChild(content);
+      try {
+        const result = pages[state.currentPage]?.call(content);
+        if (result && typeof result.catch === 'function') await result;
+      } catch (e) {
+        console.error(e);
+      }
+      app.appendChild(renderFooter());
+    }
+
+    function renderNavbar() {
+      const nav = document.createElement('nav');
+      nav.className = 'glass sticky top-0 z-50 border-b border-slate-200';
+      nav.innerHTML = `
+        <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-3 cursor-pointer" onclick="navigate('home')">
+            <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold text-xl">L</div>
+            <div>
+              <div class="font-bold text-slate-800 text-lg">LinguaEdu</div>
+              <div class="text-xs text-slate-500 -mt-1">沉浸式语言学习</div>
+            </div>
+          </div>
+          <div class="hidden md:flex items-center gap-1">
+            ${navLink('首页', 'home')}
+            ${navLink('课程中心', 'courses')}
+            ${state.user ? navLink('学习中心', 'dashboard') : ''}
+            ${state.user ? navLink('成就', 'achievements') : ''}
+            ${state.user ? navLink('社区', 'community') : ''}
+          </div>
+          <div class="flex items-center gap-2">
+            ${state.user ? `
+              <div class="hidden sm:flex items-center gap-2 bg-indigo-50 px-3 py-1.5 rounded-full">
+                <span class="text-yellow-500">⭐</span>
+                <span class="font-semibold text-indigo-700 text-sm" id="xp_badge">加载中...</span>
+              </div>
+              <div class="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-full">
+                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">${state.user.username[0].toUpperCase()}</div>
+                <span class="text-sm text-slate-700 font-medium">${state.user.username}</span>
+              </div>
+              <button onclick="logout()" class="text-slate-400 hover:text-red-500 text-sm px-2">退出</button>
+            ` : `
+              <button onclick="navigate('login')" class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-indigo-600">登录</button>
+              <button onclick="navigate('register')" class="px-4 py-2 text-sm font-medium text-white gradient-bg rounded-lg hover:opacity-90">免费注册</button>
+            `}
+          </div>
+        </div>
+      `;
+      return nav;
+    }
+
+    function navLink(label, page) {
+      const active = state.currentPage === page ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100';
+      return `<button onclick="navigate('${page}')" class="px-4 py-2 rounded-lg text-sm font-medium ${active}">${label}</button>`;
+    }
+
+    function renderFooter() {
+      const foot = document.createElement('footer');
+      foot.className = 'mt-16 border-t border-slate-200 bg-white/50';
+      foot.innerHTML = `
+        <div class="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-slate-500">
+          <div class="mb-2 font-bold text-slate-700">🌍 LinguaEdu · 让世界语言触手可及</div>
+          <div>© 2026 LinguaEdu Platform · 支持英语、日语、韩语等主流语言学习</div>
+        </div>
+      `;
+      return foot;
+    }
+
+    async function renderHome() {
+      if (state.user) {
+        try {
+          const stats = await api.get('/api/stats');
+          $('xp_badge').textContent = `${stats.totalXp} XP`;
+        } catch(e) {}
+      }
+      this.innerHTML = `
+        <section class="py-12 md:py-20 text-center">
+          <div class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-6">🚀 沉浸式语言学习平台</div>
+          <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
+            掌握一门新语言<br/>
+            <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">从未如此简单</span>
+          </h1>
+          <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-8">通过互动式课程、智能推荐和社区激励，开启你的英语、日语、韩语学习之旅。</p>
+          <div class="flex gap-4 justify-center flex-wrap">
+            <button onclick="navigate('courses')" class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200">开始学习 →</button>
+            ${!state.user ? `<button onclick="navigate('register')" class="px-8 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:border-indigo-400">注册账号</button>` : ''}
+          </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
+          ${featureCard('📚', '分级课程体系', '从入门到精通，科学分级，循序渐进')}
+          ${featureCard('🎯', '互动式学习', '单词记忆、语法练习、口语跟读、听力训练一体化')}
+          ${featureCard('📊', '进度追踪', '可视化学习数据，成就系统持续激励')}
+        </section>
+
+        <section class="bg-white rounded-3xl shadow-sm p-8 md:p-12">
+          <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">支持学习的语言</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            ${languageCard('en', '英语', '🇬🇧', 'from-blue-500 to-indigo-600')}
+            ${languageCard('ja', '日语', '🇯🇵', 'from-pink-500 to-red-500')}
+            ${languageCard('ko', '韩语', '🇰🇷', 'from-purple-500 to-indigo-500')}
+          </div>
+        </section>
+      `;
+    }
+
+    function featureCard(icon, title, desc) {
+      return `
+        <div class="bg-white rounded-2xl p-6 card-hover border border-slate-100">
+          <div class="text-4xl mb-4">${icon}</div>
+          <h3 class="font-bold text-lg text-slate-900 mb-2">${title}</h3>
+          <p class="text-slate-600 text-sm">${desc}</p>
+        </div>
+      `;
+    }
+
+    function languageCard(lang, name, flag, gradient) {
+      return `
+        <div onclick="navigate('courses', {filter_lang: '${lang}'})" class="cursor-pointer rounded-2xl p-6 bg-gradient-to-br ${gradient} text-white card-hover">
+          <div class="text-5xl mb-3">${flag}</div>
+          <div class="text-2xl font-bold">${name}</div>
+          <div class="text-white/80 text-sm mt-1">点击开始学习 →</div>
+        </div>
+      `;
+    }
+
+    function renderLogin() {
+      this.innerHTML = authForm('登录账户', false);
+      bindAuthForm(false);
+    }
+
+    function renderRegister() {
+      this.innerHTML = authForm('创建账户', true);
+      bindAuthForm(true);
+    }
+
+    function authForm(title, isRegister) {
+      const parts = [];
+      parts.push(`<div class="max-w-md mx-auto bg-white rounded-2xl shadow-lg p-8 mt-10">`);
+      parts.push(`<h2 class="text-2xl font-bold text-slate-900 mb-6 text-center">${title}</h2>`);
+      parts.push(`<div class="space-y-4">`);
+      if (isRegister) {
+        parts.push(`<div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">用户名</label>
+          <input id="f_username" type="text" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="请输入用户名" />
+        </div>`);
+      }
+      parts.push(`<div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">${isRegister ? '邮箱' : '用户名 / 邮箱'}</label>
+        <input id="f_login" type="${isRegister ? 'email' : 'text'}" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="${isRegister ? 'your@email.com' : '请输入用户名或邮箱'}" />
+      </div>`);
+      parts.push(`<div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">密码</label>
+        <input id="f_password" type="password" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none" placeholder="至少6位" />
+      </div>`);
+      if (isRegister) {
+        parts.push(`<div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">母语</label>
+            <select id="f_native" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none">
+              <option value="zh">中文</option>
+              <option value="en">英语</option>
+              <option value="ja">日语</option>
+              <option value="ko">韩语</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-700 mb-1">学习目标</label>
+            <select id="f_target" class="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none">
+              <option value="en">英语</option>
+              <option value="ja">日语</option>
+              <option value="ko">韩语</option>
+            </select>
+          </div>
+        </div>`);
+      }
+      parts.push(`<div id="auth_msg" class="text-sm hidden"></div>`);
+      parts.push(`<button id="auth_submit" class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700">${isRegister ? '立即注册' : '登录'}</button>`);
+      parts.push(`<div class="text-center text-sm text-slate-600">
+        ${isRegister ? '已有账户？' : '还没有账户？'}
+        <a href="#" onclick="navigate('${isRegister ? 'login' : 'register'}')" class="text-indigo-600 font-medium hover:underline">${isRegister ? '去登录' : '立即注册'}</a>
+      </div>`);
+      parts.push(`</div></div>`);
+      return parts.join('');
+    }
+
+    function bindAuthForm(isRegister) {
+      $('auth_submit').onclick = async () => {
+        const msg = $('auth_msg');
+        msg.classList.add('hidden');
+        try {
+          let data;
+          if (isRegister) {
+            data = {
+              username: $('f_username').value.trim(),
+              email: $('f_login').value.trim(),
+              password: $('f_password').value,
+              native_language: $('f_native').value,
+              target_language: $('f_target').value
+            };
+          } else {
+            data = {
+              login: $('f_login').value.trim(),
+              password: $('f_password').value
+            };
+          }
+          const endpoint = isRegister ? '/api/auth/register' : '/api/auth/login';
+          const res = await api.post(endpoint, data);
+          if (res.error) {
+            msg.textContent = res.error;
+            msg.className = 'text-sm text-red-600';
+            msg.classList.remove('hidden');
+            return;
+          }
+          saveAuth(res);
+          navigate('dashboard');
+        } catch (e) {
+          msg.textContent = '网络错误，请重试';
+          msg.className = 'text-sm text-red-600';
+          msg.classList.remove('hidden');
+        }
+      };
+    }
+
+    async function renderCourses() {
+      const lang = state.filter_lang || '';
+      const url = lang ? `/api/courses?language=${lang}` : '/api/courses';
+      const courses = await api.get(url);
+      const filtered = lang ? courses : courses;
+      this.innerHTML = `
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-slate-900 mb-2">课程中心</h1>
+          <p class="text-slate-600">选择你感兴趣的语言和级别，开启学习之旅</p>
+        </div>
+        <div class="flex gap-2 mb-8 flex-wrap">
+          ${filterButton('', '全部语言')}
+          ${filterButton('en', '🇬🇧 英语')}
+          ${filterButton('ja', '🇯🇵 日语')}
+          ${filterButton('ko', '🇰🇷 韩语')}
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          ${filtered.map(c => courseCard(c)).join('')}
+        </div>
+      `;
+      document.querySelectorAll('[data-filter]').forEach(btn => {
+        btn.onclick = () => navigate('courses', { filter_lang: btn.dataset.filter });
+      });
+      document.querySelectorAll('.js-course-card').forEach(el => {
+        el.onclick = () => {
+          const course = getStored('course', el.dataset.courseSid);
+          navigate('course', { currentCourse: course });
+        };
+      });
+    }
+
+    function filterButton(lang, label) {
+      const active = (state.filter_lang || '') === lang;
+      return `<button data-filter="${lang}" class="px-4 py-2 rounded-lg text-sm font-medium ${active ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-indigo-400'}">${label}</button>`;
+    }
+
+    function courseCard(c) {
+      const langFlags = { en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷' };
+      const sid = storeObj('course', c);
+      return `
+        <div data-course-sid="${sid}" class="cursor-pointer bg-white rounded-2xl overflow-hidden card-hover border border-slate-100 js-course-card">
+          <div class="h-32 bg-gradient-to-br ${c.color} flex items-center justify-center text-6xl">
+            ${c.cover}
+          </div>
+          <div class="p-5">
+            <div class="flex items-center gap-2 mb-2">
+              <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">${langFlags[c.language]} ${c.languageName}</span>
+              <span class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">${c.levelName}</span>
+            </div>
+            <h3 class="font-bold text-lg text-slate-900 mb-1">${c.title}</h3>
+            <p class="text-slate-500 text-sm mb-3">${c.description}</p>
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span>📖 ${c.lessons.length} 课时</span>
+              <span class="text-indigo-600 font-medium">开始学习 →</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function renderCourse() {
+      const c = state.currentCourse;
+      if (!c) return navigate('courses');
+      const courseSid = storeObj('course', c);
+      this.innerHTML = `
+        <div class="mb-6">
+          <button class="js-back-courses text-sm text-indigo-600 hover:underline mb-2">← 返回课程列表</button>
+          <div class="flex items-center gap-3 mb-2">
+            <div class="text-5xl">${c.cover}</div>
+            <div>
+              <h1 class="text-3xl font-bold text-slate-900">${c.title}</h1>
+              <p class="text-slate-600">${c.description}</p>
+            </div>
+          </div>
+        </div>
+        <div class="grid gap-4">
+          ${c.lessons.map((l, i) => lessonCard(c, l, i)).join('')}
+        </div>
+      `;
+      document.querySelectorAll('.js-lesson-card').forEach(el => {
+        el.onclick = () => {
+          const course = getStored('course', el.dataset.courseSid);
+          const lesson = getStored('lesson', el.dataset.lessonSid);
+          navigate('lesson', { currentCourse: course, currentLesson: lesson });
+        };
+      });
+      document.querySelector('.js-back-courses').onclick = () => navigate('courses');
+    }
+
+    function lessonCard(course, lesson, index) {
+      const typeIcons = { pronunciation: '🗣️', conversation: '💬', grammar: '📝', numbers: '🔢', scenario: '🎭', business: '💼', writing: '✍️' };
+      const typeNames = { pronunciation: '发音', conversation: '会话', grammar: '语法', numbers: '数字', scenario: '情景', business: '商务', writing: '写作' };
+      const courseSid = storeObj('course', course);
+      const lessonSid = storeObj('lesson', lesson);
+      return `
+        <div data-course-sid="${courseSid}" data-lesson-sid="${lessonSid}" class="cursor-pointer bg-white rounded-xl p-5 border border-slate-100 card-hover flex items-center gap-4 js-lesson-card">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold">${index + 1}</div>
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-lg">${typeIcons[lesson.type] || '📖'}</span>
+              <h3 class="font-semibold text-slate-900">${lesson.title}</h3>
+            </div>
+            <div class="text-sm text-slate-500">${typeNames[lesson.type]} · ${lesson.duration}分钟 · ${(lesson.vocabulary?.length || 0)}个单词</div>
+          </div>
+          <div class="text-indigo-500 text-2xl">→</div>
+        </div>
+      `;
+    }
+
+    async function renderLesson() {
+      const course = state.currentCourse;
+      const lesson = state.currentLesson;
+      if (!course || !lesson) return navigate('courses');
+
+      const tabs = [
+        { id: 'vocab', label: '📖 单词记忆', render: renderVocabulary },
+        { id: 'grammar', label: '📝 语法练习', render: renderGrammar },
+        { id: 'speaking', label: '🎤 口语跟读', render: renderSpeaking },
+        { id: 'listening', label: '🎧 听力训练', render: renderListening }
+      ];
+
+      this.innerHTML = `
+        <div class="mb-4">
+          <button class="js-back-course text-sm text-indigo-600 hover:underline mb-2">← 返回课程</button>
+          <h1 class="text-2xl font-bold text-slate-900">${course.title}</h1>
+          <h2 class="text-lg text-slate-600">${lesson.title}</h2>
+        </div>
+        <div class="flex gap-2 mb-6 overflow-x-auto pb-2">
+          ${tabs.map((t, i) => `<button data-tab="${t.id}" class="lesson-tab px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}">${t.label}</button>`).join('')}
+        </div>
+        <div id="lesson_content" class="bg-white rounded-2xl p-6 min-h-[400px]"></div>
+        <div class="mt-6 flex gap-3">
+          <button id="complete_btn" class="flex-1 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700">完成本课 ✓</button>
+          <button class="js-back-course2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:border-indigo-400">返回课时列表</button>
+        </div>
+      `;
+
+      let currentTab = tabs[0].id;
+      const contentEl = $('lesson_content');
+
+      function renderTab() {
+        const tab = tabs.find(t => t.id === currentTab);
+        tab.render(contentEl, course, lesson);
+      }
+
+      document.querySelectorAll('.lesson-tab').forEach(btn => {
+        btn.onclick = () => {
+          currentTab = btn.dataset.tab;
+          document.querySelectorAll('.lesson-tab').forEach(b => {
+            b.className = 'lesson-tab px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ' + (b.dataset.tab === currentTab ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700');
+          });
+          renderTab();
+        };
+      });
+
+      document.querySelectorAll('.js-back-course, .js-back-course2').forEach(b => b.onclick = () => navigate('course', { currentCourse: course }));
+      $('complete_btn').onclick = completeLesson;
+
+      renderTab();
+    }
+
+    function renderVocabulary(container, course, lesson) {
+      const words = lesson.vocabulary || [];
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      let index = 0;
+      let learned = new Set();
+
+      function showWord() {
+        if (index >= shuffled.length) {
+          const courseSid = storeObj('course', course);
+          const lessonSid = storeObj('lesson', lesson);
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <div class="text-6xl mb-4">🎉</div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2">单词练习完成！</h3>
+              <p class="text-slate-600 mb-6">已学习 ${learned.size} / ${shuffled.length} 个单词</p>
+              <button id="redo_btn" data-course-sid="${courseSid}" data-lesson-sid="${lessonSid}" class="px-6 py-2.5 bg-indigo-600 text-white rounded-lg font-medium">重新练习</button>
+            </div>
+          `;
+          container.querySelector('#redo_btn').onclick = () => {
+            const c = getStored('course', courseSid);
+            const l = getStored('lesson', lessonSid);
+            renderVocabulary(container, c, l);
+          };
+          return;
+        }
+        const w = shuffled[index];
+        container.innerHTML = `
+          <div class="fade-in">
+            <div class="flex items-center justify-between mb-6">
+              <div class="text-sm text-slate-500">进度 ${index + 1} / ${shuffled.length}</div>
+              <div class="text-sm text-green-600">✓ ${learned.size} 已掌握</div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mb-8">
+              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2 rounded-full transition-all" style="width: ${(index / shuffled.length) * 100}%"></div>
+            </div>
+            <div class="text-center py-8">
+              <div class="text-5xl md:text-6xl font-bold text-slate-900 mb-3">${w.word}</div>
+              ${w.phonetic ? `<div class="text-xl text-slate-500 mb-6">${w.phonetic}</div>` : ''}
+              <div class="text-2xl text-indigo-600 font-medium">${w.translation}</div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-8">
+              <button id="btn_again" class="py-3 bg-slate-100 text-slate-700 font-medium rounded-lg hover:bg-slate-200">陌生，再看一遍</button>
+              <button id="btn_know" class="py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700">认识，下一个 →</button>
+            </div>
+          </div>
+        `;
+        $('btn_again').onclick = () => { index++; showWord(); };
+        $('btn_know').onclick = () => { learned.add(w.word); index++; showWord(); };
+      }
+      showWord();
+    }
+
+    function renderGrammar(container, course, lesson) {
+      const g = lesson.grammar;
+      const examples = g?.examples || [];
+      let selectedAnswer = null;
+      const quiz = {
+        question: `关于"${g?.title || '语法'}"，以下哪个示例是正确的？`,
+        options: [...examples, 'None of the above'].sort(() => Math.random() - 0.5),
+        answer: 0
+      };
+      const correctIndex = Math.floor(Math.random() * examples.length);
+      const options = [...examples];
+      const correctOption = examples[correctIndex];
+
+      container.innerHTML = `
+        <div class="grid md:grid-cols-2 gap-6">
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 mb-4">📝 ${g?.title || '语法专题'}</h3>
+            <div class="bg-slate-50 rounded-xl p-5">
+              <div class="text-sm font-medium text-slate-500 mb-3">例句示范</div>
+              ${examples.map((e, i) => `
+                <div class="p-3 bg-white rounded-lg mb-2 border border-slate-100">
+                  <div class="font-medium text-slate-900">${e}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900 mb-4">✏️ 随堂练习</h3>
+            <div class="bg-indigo-50 rounded-xl p-5">
+              <div class="font-medium text-slate-900 mb-4">${quiz.question}</div>
+              <div class="space-y-2" id="quiz_options">
+                ${options.map((o, i) => `<button data-idx="${i}" class="quiz-opt w-full p-3 bg-white rounded-lg text-left border-2 border-transparent hover:border-indigo-300">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+              </div>
+              <div id="quiz_result" class="mt-4 text-sm hidden"></div>
+              <button id="quiz_submit" class="mt-4 w-full py-2.5 bg-indigo-600 text-white rounded-lg font-medium">提交答案</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      let chosen = null;
+      const optEls = container.querySelectorAll('.quiz-opt');
+      optEls.forEach(el => {
+        el.onclick = () => {
+          chosen = parseInt(el.dataset.idx);
+          optEls.forEach(o => o.classList.remove('border-indigo-500'));
+          el.classList.add('border-indigo-500');
+        };
+      });
+      $('quiz_submit').onclick = () => {
+        const result = $('quiz_result');
+        result.classList.remove('hidden');
+        const isCorrect = chosen === correctIndex;
+        result.innerHTML = isCorrect
+          ? '<div class="text-green-600 font-medium">✓ 回答正确！语法掌握良好。</div>'
+          : `<div class="text-red-600">✗ 不太对哦。正确答案：<span class="font-medium">${correctOption}</span></div>`;
+      };
+    }
+
+    function renderSpeaking(container, course, lesson) {
+      const dialogues = lesson.dialogue || [];
+      let index = 0;
+      let score = 0;
+
+      function playAudio(text, lang) {
+        if (!window.speechSynthesis) return;
+        const utter = new SpeechSynthesisUtterance(text);
+        const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+        utter.lang = langMap[lang] || 'en-US';
+        utter.rate = 0.9;
+        window.speechSynthesis.speak(utter);
+      }
+
+      function showDialogue() {
+        if (index >= dialogues.length) {
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <div class="text-6xl mb-4">🎊</div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2">口语练习完成！</h3>
+              <p class="text-slate-600">本次得分：${score} / ${dialogues.length * 20}</p>
+              <div class="mt-6">${confettiStars(score)}</div>
+            </div>
+          `;
+          return;
+        }
+        const d = dialogues[index];
+        container.innerHTML = `
+          <div class="fade-in text-center py-6">
+            <div class="text-sm text-slate-500 mb-4">进度 ${index + 1} / ${dialogues.length}</div>
+            <div class="bg-indigo-50 rounded-2xl p-8 mb-6">
+              <div class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">${d.en || d.ja || d.ko || d.zh}</div>
+              <div class="text-lg text-slate-600">${d.zh || ''}</div>
+            </div>
+            <button id="play_btn" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 mb-4">
+              🔊 播放示范发音
+            </button>
+            <div class="text-sm text-slate-500 mb-3">点击下方按钮，跟读并评分</div>
+            <button id="speak_btn" class="px-8 py-4 bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-2xl font-bold text-lg hover:opacity-90 inline-flex items-center gap-3">
+              <span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span>
+              开始跟读
+            </button>
+            <div id="speak_result" class="mt-6 text-lg font-bold"></div>
+          </div>
+        `;
+        $('play_btn').onclick = () => playAudio(d.en || d.ja || d.ko || d.zh, course.language);
+        $('speak_btn').onclick = () => {
+          const randScore = Math.floor(Math.random() * 15) + 5;
+          score += randScore;
+          const result = $('speak_result');
+          const emoji = randScore >= 15 ? '🌟' : randScore >= 10 ? '👍' : '💪';
+          const msg = randScore >= 15 ? '发音很棒！' : randScore >= 10 ? '不错哦！' : '再试一次更好！';
+          result.innerHTML = `<div class="text-center"><div class="text-4xl mb-2">${emoji}</div><div class="text-2xl text-indigo-600">${msg} 得分：${randScore}</div></div>`;
+          setTimeout(() => { index++; showDialogue(); }, 2000);
+        };
+      }
+      showDialogue();
+    }
+
+    function renderListening(container, course, lesson) {
+      const dialogues = lesson.dialogue || [];
+      let index = 0;
+      let correct = 0;
+
+      function playAudio(text, lang) {
+        if (!window.speechSynthesis) return;
+        const utter = new SpeechSynthesisUtterance(text);
+        const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+        utter.lang = langMap[lang] || 'en-US';
+        utter.rate = 0.85;
+        window.speechSynthesis.speak(utter);
+      }
+
+      function showListening() {
+        if (index >= dialogues.length) {
+          container.innerHTML = `
+            <div class="text-center py-12">
+              <div class="text-6xl mb-4">🏆</div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2">听力训练完成！</h3>
+              <p class="text-slate-600">正确：${correct} / ${dialogues.length}</p>
+            </div>
+          `;
+          return;
+        }
+        const d = dialogues[index];
+        const langKey = course.language === 'en' ? 'en' : course.language === 'ja' ? 'ja' : 'ko';
+        const target = d[langKey];
+        const translation = d.zh;
+        const options = [
+          translation,
+          '完全不同的意思',
+          '另一个无关的翻译'
+        ].sort(() => Math.random() - 0.5);
+
+        container.innerHTML = `
+          <div class="fade-in">
+            <div class="text-sm text-slate-500 mb-4 text-center">进度 ${index + 1} / ${dialogues.length}</div>
+            <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-8 text-center mb-6">
+              <div class="text-4xl mb-4">🎧</div>
+              <div class="text-lg text-slate-600 mb-4">请听下面的对话</div>
+              <button id="audio_btn" class="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-bold text-lg hover:bg-indigo-700">
+                🔊 播放音频
+              </button>
+              <button id="slow_btn" class="ml-2 px-5 py-4 bg-white border-2 border-indigo-200 text-indigo-600 rounded-2xl font-medium hover:border-indigo-400">
+                🐢 慢速
+              </button>
+            </div>
+            <div class="mb-3 font-medium text-slate-900">这段话的意思是？</div>
+            <div class="space-y-2" id="listen_opts">
+              ${options.map((o, i) => `<button data-idx="${i}" class="listen-opt w-full p-4 bg-white rounded-xl text-left border-2 border-slate-200 hover:border-indigo-400">${String.fromCharCode(65+i)}. ${o}</button>`).join('')}
+            </div>
+            <div id="listen_result" class="mt-4 text-center text-sm font-medium hidden"></div>
+          </div>
+        `;
+        let chosen = null;
+        const optEls = container.querySelectorAll('.listen-opt');
+        optEls.forEach(el => {
+          el.onclick = () => {
+            chosen = parseInt(el.dataset.idx);
+            optEls.forEach(o => o.classList.remove('border-indigo-500'));
+            el.classList.add('border-indigo-500');
+          };
+        });
+
+        $('audio_btn').onclick = () => playAudio(target, course.language);
+        $('slow_btn').onclick = () => {
+          if (!window.speechSynthesis) return;
+          const utter = new SpeechSynthesisUtterance(target);
+          const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+          utter.lang = langMap[course.language] || 'en-US';
+          utter.rate = 0.55;
+          window.speechSynthesis.speak(utter);
+        };
+
+        let submitted = false;
+        $('audio_btn').insertAdjacentHTML('afterend', '<button id="submit_listen" class="hidden"></button>');
+        const submitBtn = document.createElement('button');
+        submitBtn.className = 'w-full mt-4 py-3 bg-indigo-600 text-white rounded-xl font-medium';
+        submitBtn.textContent = '提交答案';
+        submitBtn.onclick = () => {
+          if (chosen === null) return;
+          submitted = true;
+          const isCorrect = options[chosen] === translation;
+          if (isCorrect) correct++;
+          const result = $('listen_result');
+          result.classList.remove('hidden');
+          result.innerHTML = isCorrect
+            ? '<div class="text-green-600 text-lg">✓ 回答正确！</div>'
+            : `<div class="text-red-600">✗ 正确答案是：<span class="font-medium">${translation}</span></div>`;
+          setTimeout(() => { index++; showListening(); }, 2000);
+        };
+        container.querySelector('#listen_opts').after(submitBtn);
+      }
+      showListening();
+    }
+
+    function confettiStars(score) {
+      const stars = Math.min(5, Math.floor(score / 20) + 1);
+      return `<div class="text-3xl">${'⭐'.repeat(stars)}${'☆'.repeat(5 - stars)}</div>`;
+    }
+
+    async function completeLesson() {
+      const course = state.currentCourse;
+      const lesson = state.currentLesson;
+      if (!course || !lesson) return;
+      const score = Math.floor(Math.random() * 30) + 20;
+      await api.post('/api/progress', {
+        course_id: course.id,
+        lesson_id: lesson.id,
+        completed: true,
+        score
+      });
+      alert(`🎉 恭喜完成！获得 ${score} 经验值`);
+      navigate('course', { currentCourse: course });
+    }
+
+    async function renderDashboard() {
+      if (!state.user) return navigate('login');
+      try {
+        const [profileRes, statsRes, recRes, progressRes] = await Promise.all([
+          api.get('/api/user/profile'),
+          api.get('/api/stats'),
+          api.get('/api/recommendations'),
+          api.get('/api/progress')
+        ]);
+
+        const totalLessons = recRes.reduce((s, c) => s + c.lessons.length, 0);
+        const completedCount = progressRes.filter(p => p.completed).length;
+        const level = Math.floor(statsRes.totalXp / 100) + 1;
+
+        this.innerHTML = `
+          <div class="mb-6">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">👋 你好，${state.user.username}！</h1>
+            <p class="text-slate-600">继续你的学习旅程，每天进步一点点</p>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            ${statCard('📊', '总经验', statsRes.totalXp, 'XP')}
+            ${statCard('⏱️', '学习时长', statsRes.totalMinutes, '分钟')}
+            ${statCard('🔥', '连续打卡', statsRes.streak, '天')}
+            ${statCard('📚', '已完成', completedCount, '节课')}
+          </div>
+
+          <div class="bg-white rounded-2xl p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h2 class="text-xl font-bold text-slate-900">📈 等级 Lv.${level}</h2>
+              <div class="text-sm text-slate-500">${statsRes.totalXp} XP</div>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-3">
+              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all" style="width: ${(statsRes.totalXp % 100)}%"></div>
+            </div>
+            <div class="text-xs text-slate-500 mt-2">距离 Lv.${level + 1} 还差 ${100 - (statsRes.totalXp % 100)} XP</div>
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-900 mb-4">💡 为你推荐的课程</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            ${recRes.length > 0 ? recRes.map(c => {
+              const courseSid = storeObj('course', c);
+              const lessonSid = storeObj('lesson', c.nextLesson);
+              return `
+              <div data-rec-course="${courseSid}" data-rec-lesson="${lessonSid}" class="cursor-pointer bg-white rounded-2xl overflow-hidden card-hover border border-slate-100 js-rec-card">
+                <div class="h-24 bg-gradient-to-br ${c.color} flex items-center justify-center text-5xl">${c.cover}</div>
+                <div class="p-4">
+                  <div class="font-bold text-slate-900 mb-1">${c.title}</div>
+                  <div class="text-sm text-slate-600">下一课：${c.nextLesson?.title}</div>
+                  <div class="text-xs text-indigo-600 mt-2 font-medium">开始学习 →</div>
+                </div>
+              </div>
+            `;
+            }).join('') : '<div class="col-span-3 text-center py-8 bg-white rounded-xl text-slate-500">暂无推荐课程，前往课程中心选课</div>'}
+          </div>
+
+          <h2 class="text-xl font-bold text-slate-900 mb-4">📅 最近学习记录</h2>
+          <div class="bg-white rounded-2xl overflow-hidden">
+            ${statsRes.stats.length > 0 ? `
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="text-left p-3 text-slate-600 font-medium">日期</th>
+                    <th class="text-left p-3 text-slate-600 font-medium">时长</th>
+                    <th class="text-left p-3 text-slate-600 font-medium">获得XP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${statsRes.stats.slice(0, 7).map(s => `
+                    <tr class="border-t border-slate-100">
+                      <td class="p-3">${s.study_date}</td>
+                      <td class="p-3">${s.minutes} 分钟</td>
+                      <td class="p-3 text-indigo-600 font-medium">+${s.xp} XP</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="p-8 text-center text-slate-500">暂无学习记录，开始你的第一节课吧！</div>'}
+          </div>
+        `;
+        document.querySelectorAll('.js-rec-card').forEach(el => {
+          el.onclick = () => {
+            const course = getStored('course', el.dataset.recCourse);
+            const lesson = getStored('lesson', el.dataset.recLesson);
+            navigate('lesson', { currentCourse: course, currentLesson: lesson });
+          };
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function statCard(icon, label, value, unit) {
+      return `
+        <div class="bg-white rounded-2xl p-4">
+          <div class="flex items-center gap-3">
+            <div class="text-3xl">${icon}</div>
+            <div>
+              <div class="text-xs text-slate-500">${label}</div>
+              <div class="text-xl font-bold text-slate-900">${value} <span class="text-sm font-normal text-slate-500">${unit}</span></div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function renderAchievements() {
+      if (!state.user) return navigate('login');
+      try {
+        const list = await api.get('/api/achievements');
+        this.innerHTML = `
+          <div class="mb-6">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">🏆 我的成就</h1>
+            <p class="text-slate-600">每一个成就都是努力的见证</p>
+          </div>
+          ${list.length > 0 ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              ${list.map(a => `
+                <div class="bg-white rounded-2xl p-6 border-2 border-yellow-200 card-hover">
+                  <div class="text-5xl mb-3">${a.icon}</div>
+                  <div class="font-bold text-lg text-slate-900 mb-1">${a.title}</div>
+                  <div class="text-sm text-slate-600 mb-2">${a.description}</div>
+                  <div class="text-xs text-slate-400">获得时间：${new Date(a.created_at).toLocaleDateString('zh-CN')}</div>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="bg-white rounded-2xl p-12 text-center">
+              <div class="text-6xl mb-4">🎯</div>
+              <h3 class="text-xl font-bold text-slate-900 mb-2">开始学习解锁成就</h3>
+              <p class="text-slate-600 mb-6">完成课程、积累经验值，即可获得各类成就徽章</p>
+              <button onclick="navigate('courses')" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">前往选课</button>
+            </div>
+          `}
+        `;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function renderCommunity() {
+      if (!state.user) return navigate('login');
+      try {
+        const posts = await api.get('/api/community/posts');
+        this.innerHTML = `
+          <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 class="text-3xl font-bold text-slate-900 mb-2">💬 学习社区</h1>
+              <p class="text-slate-600">与其他学习者交流心得、分享资源</p>
+            </div>
+            <button id="new_post_btn" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">+ 发布新帖</button>
+          </div>
+          <div id="new_post_form" class="hidden bg-white rounded-2xl p-6 mb-6 border-2 border-indigo-200">
+            <h3 class="font-bold text-slate-900 mb-4">发布新话题</h3>
+            <div class="space-y-3">
+              <input id="post_title" placeholder="标题" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400" />
+              <textarea id="post_content" rows="4" placeholder="分享你的学习心得..." class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+              <select id="post_lang" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg">
+                <option value="en">英语</option>
+                <option value="ja">日语</option>
+                <option value="ko">韩语</option>
+                <option value="zh">中文</option>
+              </select>
+              <div class="flex gap-2">
+                <button id="submit_post" class="px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium">发布</button>
+                <button id="cancel_post" class="px-5 py-2 bg-slate-100 text-slate-700 rounded-lg">取消</button>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-4">
+            ${posts.length > 0 ? posts.map(p => `
+              <div class="bg-white rounded-2xl p-5 border border-slate-100 card-hover">
+                <div class="flex items-center gap-3 mb-3">
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">${p.username[0].toUpperCase()}</div>
+                  <div>
+                    <div class="font-semibold text-slate-900">${p.username}</div>
+                    <div class="text-xs text-slate-500">${new Date(p.created_at).toLocaleString('zh-CN')}</div>
+                  </div>
+                  <span class="ml-auto text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">${({en:'英语',ja:'日语',ko:'韩语',zh:'中文'})[p.language] || p.language}</span>
+                </div>
+                <h3 class="font-bold text-lg text-slate-900 mb-2">${p.title}</h3>
+                <p class="text-slate-700 whitespace-pre-wrap">${p.content}</p>
+                <div class="mt-4 pt-4 border-t border-slate-100">
+                  <button data-post="${p.id}" class="toggle-cmnt text-sm text-indigo-600 font-medium mb-2">💬 查看/发表评论</button>
+                  <div class="cmnt-box hidden space-y-2 mt-3"></div>
+                </div>
+              </div>
+            `).join('') : '<div class="bg-white rounded-2xl p-12 text-center text-slate-500">暂无话题，成为第一个发帖的人吧！</div>'}
+          </div>
+        `;
+
+        $('new_post_btn').onclick = () => $('new_post_form').classList.toggle('hidden');
+        $('cancel_post').onclick = () => $('new_post_form').classList.add('hidden');
+        $('submit_post').onclick = async () => {
+          const title = $('post_title').value.trim();
+          const content = $('post_content').value.trim();
+          const language = $('post_lang').value;
+          if (!title || !content) { alert('标题和内容必填'); return; }
+          await api.post('/api/community/posts', { title, content, language });
+          navigate('community');
+        };
+
+        document.querySelectorAll('.toggle-cmnt').forEach(btn => {
+          btn.onclick = async () => {
+            const box = btn.nextElementSibling;
+            box.classList.toggle('hidden');
+            if (!box.dataset.loaded) {
+              const pid = btn.dataset.post;
+              const cmts = await api.get(`/api/community/posts/${pid}/comments`);
+              box.innerHTML = `
+                <div class="space-y-2">
+                  ${cmts.map(c => `<div class="p-2 bg-slate-50 rounded-lg"><span class="font-medium text-slate-700">${c.username}：</span><span class="text-slate-600">${c.content}</span></div>`).join('')}
+                </div>
+                <div class="flex gap-2 mt-2">
+                  <input data-cmt-post="${pid}" placeholder="写下你的评论..." class="cmt-input flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400" />
+                  <button data-cmt-sub="${pid}" class="cmt-sub px-3 py-2 text-sm bg-indigo-600 text-white rounded-lg">发送</button>
+                </div>
+              `;
+              box.dataset.loaded = '1';
+              box.querySelectorAll('.cmt-sub').forEach(s => {
+                s.onclick = async () => {
+                  const input = box.querySelector('.cmt-input');
+                  const val = input.value.trim();
+                  if (!val) return;
+                  await api.post(`/api/community/posts/${pid}/comments`, { content: val });
+                  box.dataset.loaded = '';
+                  btn.click();
+                  btn.click();
+                };
+              });
+            }
+          };
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    render();
+  </script>
+</body>
+</html>

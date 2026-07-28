@@ -1,0 +1,18 @@
+{
+  "name": "lingua-edu-platform",
+  "version": "1.0.0",
+  "description": "多语种在线教育平台 - 沉浸式语言学习",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.22.0"
+  }
+}
