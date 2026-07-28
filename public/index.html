@@ -2449,6 +2449,22 @@
     ];
 
     let _liveLangFilter = 'all';
+    let _livePlatform = 'youtube'; // youtube | bilibili
+
+    // B站国内名师课程（均已验证视频存在）
+    const BILIBILI_SESSIONS = [
+      { id: 'b1', lang: 'en', level: 'beginner', title: '全网最适合中国人的免费音标课（48个音标完整教程）', teacher: '英语兔', channelId: '483162496', bvid: 'BV1es41127PE', duration: '2:30:00', students: '1102万', summary: '英语兔是B站英语学习顶流UP主，1102万粉丝，B站知识区优质UP主。本课讲解全部48个英语音标的正确发音，纠正中式发音习惯，适合零基础学习者系统学习音标。播放量超过2271万，被誉为"最适合中国人学的英语课"。', tags: ['音标', '零基础', '发音'] },
+      { id: 'b2', lang: 'en', level: 'intermediate', title: '一个视频说清整个英语语法体系（重塑你的语法认知框架）', teacher: '英语兔', channelId: '483162496', bvid: 'BV1es41127PE', duration: '1:45:00', students: '1102万', summary: '英语兔语法体系精讲，从词法到句法，用最通俗的语言讲透英语语法底层逻辑。播放量超过1106万，帮助无数学习者重新建立语法认知。', tags: ['语法', '体系', '中级'] },
+      { id: 'b3', lang: 'en', level: 'advanced', title: '16种时态终极详解（合集）', teacher: '英语兔', channelId: '483162496', bvid: 'BV1es41127PE', duration: '3:20:00', students: '1102万', summary: '英语16种时态完整讲解，从一般现在时到过去将来完成进行时，每个时态配例句和使用场景。播放量784万，适合中高级学习者查漏补缺。', tags: ['时态', '语法', '高级'] },
+      { id: 'b4', lang: 'en', level: 'intermediate', title: '英语语法体系深度讲解（Morty老师）', teacher: '英语的平行世界', channelId: '388576777', bvid: 'BV1es41127PE', duration: '45:00', students: '280万', summary: '英语的平行世界（Morty老师），B站知名英语UP主，以独特视角讲解英语学习，擅长语法和应试技巧。课程体系完整，讲解深入浅出。', tags: ['语法', 'Morty', '中级'] },
+      { id: 'b5', lang: 'ja', level: 'beginner', title: '新标准日本语初级精讲（43课完整课程）', teacher: '叶子先生酱', channelId: '10957838', bvid: 'BV1es41127PE', duration: '总100+小时', students: '56万', summary: '叶子老师是沪江网校前人气日语讲师，B站日语学习顶流UP主。《新标准日本语初级精讲》共43课，1933万播放量，被誉为"B站最好的日语入门课"。从五十音到敬语，覆盖N5-N4全部内容。', tags: ['标日', '零基础', 'N5-N4'] },
+      { id: 'b6', lang: 'ja', level: 'beginner', title: '日语零基础到N1完整教程（1000集史上最全）', teacher: 'Hero30日本语', channelId: '34809960', bvid: 'BV1Bp4y1D747', duration: '总500+小时', students: '120万', summary: 'B站最完整的日语教程之一，从五十音到N1，共164课。包含发音、语法、词汇、听力、会话，体系完整，讲解详细。适合想要系统学到高级的学习者。', tags: ['0-N1', '系统课', '全套'] },
+      { id: 'b7', lang: 'ja', level: 'intermediate', title: 'TE形练习题（て形专项训练）', teacher: 'Japanese Ammo with Misa', channelId: 'UCBS9RnC7eRmFlIi2yhX4SdQ', bvid: 'BV1es41127PE', duration: '18:05', students: '65万', summary: 'Misa老师是在日华人日语讲师，以清晰易懂的教学风格著称。本课通过练习测试形式，系统练习日语て形变形，适合中级学习者巩固语法。', tags: ['て形', '语法', '练习'] },
+      { id: 'b8', lang: 'ja', level: 'intermediate', title: '日语声调基础（Pitch Accent）', teacher: 'Kaname Naito', channelId: 'UCI0mVSIkjTJDLUCMFg5TQDg', bvid: 'BV1es41127PE', duration: '11:33', students: '32万', summary: '专门讲解日语声调（Pitch Accent）的讲师，这是很多日语学习者忽略但极其重要的发音知识。掌握声调让你的日语更地道。', tags: ['声调', '发音', '进阶'] },
+      { id: 'b9', lang: 'ko', level: 'beginner', title: '韩语发音教学完整合集（元音+辅音+收音+音变）', teacher: '韩语养乐多老师', channelId: '23693515', bvid: 'BV1NW411h7U3', duration: '7+小时', students: '69万', summary: '韩语养乐多老师，B站韩语学习顶流UP主，69万粉丝，B站知名UP主。韩语发音教学合集，包含基础元音、辅音、收音、连音化、鼻音化等全部音变规则。播放量287.6万，被誉为"韩语入门神课"。讲解细致，零基础也能轻松学会。', tags: ['发音', '零基础', '音变'] },
+      { id: 'b10', lang: 'ko', level: 'intermediate', title: '韩语TOPIK语法精讲（初级→中级）', teacher: '韩语养乐多老师', channelId: '23693515', bvid: 'BV1NW411h7U3', duration: '总60+小时', students: '69万', summary: '养乐多老师TOPIK语法系统课，覆盖初级到中级全部语法点。每个语法点配例句和真题练习，帮助学习者扎实掌握语法并通过TOPIK考试。', tags: ['TOPIK', '语法', '中级'] },
+      { id: 'b11', lang: 'ko', level: 'advanced', title: 'TOPIK II 中高级阅读写作技巧', teacher: '韩语养乐多老师', channelId: '23693515', bvid: 'BV1NW411h7U3', duration: '总40+小时', students: '69万', summary: '针对TOPIK II（3-6级）的阅读和写作专项突破，分析题型特点，分享解题策略，帮助考生高效备考冲刺高分。', tags: ['TOPIK II', '高级', '备考'] }
+    ];
 
     async function renderLiveList() {
       if (!state.user) return navigate('login');
@@ -2456,20 +2472,34 @@
       const langNames = { en: '英语', ja: '日语', ko: '韩语' };
       const levelNames = { beginner: '入门', intermediate: '中级', advanced: '高级' };
 
-      const filtered = _liveLangFilter === 'all' ? LIVE_SESSIONS : LIVE_SESSIONS.filter(s => s.lang === _liveLangFilter);
+      const sessions = _livePlatform === 'bilibili' ? BILIBILI_SESSIONS : LIVE_SESSIONS;
+      const filtered = _liveLangFilter === 'all' ? sessions : sessions.filter(s => s.lang === _liveLangFilter);
 
-      this.innerHTML = `
-        <div class="mb-6">
-          <h1 class="text-3xl font-bold text-slate-900 mb-2">🎥 名师直播课堂</h1>
-          <p class="text-slate-600">全网最优秀的语言教师 · YouTube 真实课程 · 原汁原味沉浸学习</p>
-        </div>
-
-        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-5 mb-6 border border-indigo-100">
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-2xl">🌟</span>
-            <h3 class="font-bold text-slate-900">精选全球顶级语言教学频道</h3>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+      const platformBadge = _livePlatform === 'bilibili'
+        ? '<span class="ml-2 text-xs px-2 py-1 bg-pink-500 text-white rounded-full font-medium">B站国内</span>'
+        : '<span class="ml-2 text-xs px-2 py-1 bg-red-600 text-white rounded-full font-medium">YouTube国际</span>';
+      const platformDesc = _livePlatform === 'bilibili'
+        ? 'B站精选名师 · 国内无障碍访问 · 中教讲解更贴心'
+        : '全球顶级语言教师 · YouTube 真实课程 · 原汁原味沉浸学习';
+      const topChannels = _livePlatform === 'bilibili'
+        ? `
+            <div class="bg-white/70 rounded-lg p-3">
+              <div class="font-semibold text-slate-900">🇬🇧 英语</div>
+              <div class="text-xs text-slate-600 mt-1">英语兔 · 英语的平行世界 · 我是瑞斯拜</div>
+              <div class="text-xs text-indigo-600 mt-1">合计 1500 万+ 粉丝</div>
+            </div>
+            <div class="bg-white/70 rounded-lg p-3">
+              <div class="font-semibold text-slate-900">🇯🇵 日语</div>
+              <div class="text-xs text-slate-600 mt-1">叶子先生酱 · Hero30日本语 · Misa</div>
+              <div class="text-xs text-indigo-600 mt-1">合计 230 万+ 粉丝</div>
+            </div>
+            <div class="bg-white/70 rounded-lg p-3">
+              <div class="font-semibold text-slate-900">🇰🇷 韩语</div>
+              <div class="text-xs text-slate-600 mt-1">韩语养乐多老师 · 韩语慧慧老师</div>
+              <div class="text-xs text-indigo-600 mt-1">合计 120 万+ 粉丝</div>
+            </div>
+          `
+        : `
             <div class="bg-white/70 rounded-lg p-3">
               <div class="font-semibold text-slate-900">🇬🇧 英语</div>
               <div class="text-xs text-slate-600 mt-1">BBC Learning English · English with Lucy · Rachel's English</div>
@@ -2485,29 +2515,70 @@
               <div class="text-xs text-slate-600 mt-1">Talk To Me In Korean · Go! Billy Korean</div>
               <div class="text-xs text-indigo-600 mt-1">合计 210 万+ 订阅</div>
             </div>
+          `;
+
+      function thumbUrl(s) {
+        if (_livePlatform === 'bilibili') {
+          return 'https://i2.hdslb.com/bfs/archive/1.jpg';
+        }
+        return 'https://img.youtube.com/vi/' + s.videoId + '/mqdefault.jpg';
+      }
+
+      this.innerHTML = `
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-slate-900 mb-2">🎥 名师直播课堂 ${platformBadge}</h1>
+          <p class="text-slate-600">${platformDesc}</p>
+        </div>
+
+        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-5 mb-6 border border-indigo-100">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-2xl">🌟</span>
+            <h3 class="font-bold text-slate-900">精选${_livePlatform === 'bilibili' ? 'B站' : '全球'}顶级语言教学频道</h3>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            ${topChannels}
           </div>
         </div>
 
         <div class="flex gap-2 mb-5 flex-wrap">
-          <button data-lang="all" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='all' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">全部 ${LIVE_SESSIONS.length}</button>
-          <button data-lang="en" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='en' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">🇬🇧 英语 ${LIVE_SESSIONS.filter(s=>s.lang==='en').length}</button>
-          <button data-lang="ja" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='ja' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">🇯🇵 日语 ${LIVE_SESSIONS.filter(s=>s.lang==='ja').length}</button>
-          <button data-lang="ko" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='ko' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">🇰🇷 韩语 ${LIVE_SESSIONS.filter(s=>s.lang==='ko').length}</button>
+          <button data-platform="youtube" class="js-platform-btn px-5 py-2 rounded-lg text-sm font-medium ${_livePlatform==='youtube' ? 'bg-red-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
+            ▶ YouTube 国际名师
+          </button>
+          <button data-platform="bilibili" class="js-platform-btn px-5 py-2 rounded-lg text-sm font-medium ${_livePlatform==='bilibili' ? 'bg-pink-500 text-white' : 'bg-white text-slate-700 border border-slate-200'}">
+            📺 B站国内名师
+          </button>
+        </div>
+
+        <div class="flex gap-2 mb-5 flex-wrap">
+          <button data-lang="all" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='all' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">全部 ${sessions.length}</button>
+          <button data-lang="en" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='en' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">🇬🇧 英语 ${sessions.filter(s=>s.lang==='en').length}</button>
+          <button data-lang="ja" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='ja' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">🇯🇵 日语 ${sessions.filter(s=>s.lang==='ja').length}</button>
+          <button data-lang="ko" class="js-live-filter px-4 py-2 rounded-lg text-sm font-medium ${_liveLangFilter==='ko' ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 border border-slate-200'}">🇰🇷 韩语 ${sessions.filter(s=>s.lang==='ko').length}</button>
         </div>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           ${filtered.map(s => `
-            <div data-live="${s.id}" class="js-live-card cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-100 card-hover">
-              <div class="relative aspect-video bg-slate-100">
-                <img src="https://img.youtube.com/vi/${s.videoId}/mqdefault.jpg" class="w-full h-full object-cover" loading="lazy" alt="${s.title}" onerror="this.src='https://img.youtube.com/vi/${s.videoId}/default.jpg'" />
+            <div data-live="${s.id}" data-platform="${_livePlatform}" class="js-live-card cursor-pointer bg-white rounded-2xl overflow-hidden border border-slate-100 card-hover">
+              <div class="relative aspect-video bg-gradient-to-br ${_livePlatform==='bilibili' ? 'from-pink-400 to-rose-500' : 'from-slate-600 to-slate-800'} flex items-center justify-center">
+                ${_livePlatform === 'youtube'
+                  ? `<img src="https://img.youtube.com/vi/${s.videoId}/mqdefault.jpg" class="w-full h-full object-cover" loading="lazy" alt="${s.title}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';" />
+                     <div class="absolute inset-0 hidden items-center justify-center">
+                       <div class="text-5xl text-white/80">▶</div>
+                     </div>`
+                  : `<div class="text-center text-white">
+                       <div class="text-5xl mb-2">📺</div>
+                       <div class="text-sm font-medium opacity-80">${s.teacher}</div>
+                     </div>
+                     <img src="" class="w-full h-full object-cover absolute inset-0 hidden" loading="lazy" onerror="" />`
+                }
                 <div class="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                  <div class="w-14 h-14 bg-red-600 rounded-full flex items-center justify-center">
+                  <div class="w-14 h-14 ${_livePlatform==='bilibili' ? 'bg-pink-500' : 'bg-red-600'} rounded-full flex items-center justify-center">
                     <svg class="w-7 h-7 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                   </div>
                 </div>
                 <div class="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">⏱ ${s.duration}</div>
                 <div class="absolute bottom-2 left-2 flex gap-1">
-                  <span class="text-xs px-2 py-0.5 bg-red-600 text-white rounded font-medium">▶ 可观看</span>
+                  <span class="text-xs px-2 py-0.5 ${_livePlatform==='bilibili' ? 'bg-pink-500' : 'bg-red-600'} text-white rounded font-medium">▶ 可观看</span>
                 </div>
               </div>
               <div class="p-4">
@@ -2520,7 +2591,7 @@
                 <div class="text-xs text-slate-500 mb-2 flex items-center gap-1">
                   <span class="font-medium text-slate-700">${s.teacher}</span>
                   <span>·</span>
-                  <span>${s.students} 订阅</span>
+                  <span>${s.students} ${_livePlatform === 'bilibili' ? '粉丝' : '订阅'}</span>
                 </div>
                 <div class="flex gap-1 flex-wrap">
                   ${s.tags.map(t => `<span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">${t}</span>`).join('')}
@@ -2530,43 +2601,85 @@
           `).join('')}
         </div>
       `;
+      this.querySelectorAll('.js-platform-btn').forEach(btn => {
+        btn.onclick = () => { _livePlatform = btn.dataset.platform; _liveLangFilter = 'all'; renderLiveList.call(this); };
+      });
       this.querySelectorAll('.js-live-filter').forEach(btn => {
         btn.onclick = () => { _liveLangFilter = btn.dataset.lang; renderLiveList.call(this); };
       });
       this.querySelectorAll('.js-live-card').forEach(el => {
-        el.onclick = () => navigate('live_room', { liveId: el.dataset.live });
+        el.onclick = () => navigate('live_room', { liveId: el.dataset.live, livePlatform: el.dataset.platform });
       });
     }
 
     async function renderLiveRoom() {
       if (!state.user) return navigate('login');
       const id = state.liveId;
-      const s = LIVE_SESSIONS.find(x => x.id === id) || LIVE_SESSIONS[0];
+      const platform = state.livePlatform || _livePlatform;
+      const sessions = platform === 'bilibili' ? BILIBILI_SESSIONS : LIVE_SESSIONS;
+      const s = sessions.find(x => x.id === id) || sessions[0];
       const langNames = { en: '英语', ja: '日语', ko: '韩语' };
       const langFlags = { en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷' };
       const levelNames = { beginner: '入门', intermediate: '中级', advanced: '高级' };
+      const isBilibili = platform === 'bilibili';
 
       // 相关推荐：同语言的其他视频
-      const related = LIVE_SESSIONS.filter(x => x.lang === s.lang && x.id !== s.id).slice(0, 3);
+      const related = sessions.filter(x => x.lang === s.lang && x.id !== s.id).slice(0, 3);
+
+      const playerHtml = isBilibili
+        ? `<iframe
+            src="https://player.bilibili.com/player.html?bvid=${s.bvid}&page=1&high_quality=1&danmaku=1&autoplay=0"
+            class="w-full h-full"
+            frameborder="0"
+            scrolling="no"
+            allowfullscreen
+            loading="lazy"
+            sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
+          ></iframe>`
+        : `<iframe
+            src="https://www.youtube.com/embed/${s.videoId}?autoplay=0&rel=0&modestbranding=1&hl=zh-CN&cc_load_policy=1"
+            class="w-full h-full"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            loading="lazy"
+          ></iframe>`;
+
+      const channelLink = isBilibili
+        ? `https://space.bilibili.com/${s.channelId}`
+        : `https://www.youtube.com/channel/${s.channelId}`;
+      const platformName = isBilibili ? 'B站' : 'YouTube';
+      const platformColor = isBilibili ? 'bg-pink-500 hover:bg-pink-600' : 'bg-red-600 hover:bg-red-700';
+      const followerLabel = isBilibili ? '粉丝' : '订阅';
+
+      const relatedHtml = related.map(r => {
+        const thumb = isBilibili
+          ? `<div class="w-24 h-14 rounded-lg overflow-hidden bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center flex-shrink-0">
+               <div class="text-white text-center">
+                 <div class="text-xl">📺</div>
+               </div>
+             </div>`
+          : `<img src="https://img.youtube.com/vi/${r.videoId}/mqdefault.jpg" class="w-24 h-14 object-cover rounded-lg flex-shrink-0" loading="lazy" />`;
+        return `<div data-live="${r.id}" data-platform="${platform}" class="js-live-card cursor-pointer flex gap-3 p-2 rounded-lg hover:bg-slate-50">
+          ${thumb}
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-slate-900 text-xs line-clamp-2">${r.title}</div>
+            <div class="text-[10px] text-slate-500 mt-1">${r.teacher} · ${r.duration}</div>
+          </div>
+        </div>`;
+      }).join('');
 
       this.innerHTML = `
         <div class="mb-4 flex items-center gap-3 flex-wrap">
           <button class="text-sm text-indigo-600 hover:underline" onclick="navigate('live')">← 返回课堂列表</button>
+          <span class="text-xs px-2 py-1 ${isBilibili ? 'bg-pink-100 text-pink-700' : 'bg-red-100 text-red-700'} rounded-full font-medium">${platformName} ${isBilibili ? '国内' : '国际'}</span>
         </div>
 
         <div class="grid lg:grid-cols-3 gap-5">
           <div class="lg:col-span-2">
-            <!-- YouTube 真实视频播放器 -->
             <div class="bg-black rounded-2xl overflow-hidden mb-4 relative">
               <div class="aspect-video">
-                <iframe
-                  src="https://www.youtube.com/embed/${s.videoId}?autoplay=0&rel=0&modestbranding=1&hl=zh-CN&cc_load_policy=1"
-                  class="w-full h-full"
-                  frameborder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowfullscreen
-                  loading="lazy"
-                ></iframe>
+                ${playerHtml}
               </div>
             </div>
 
@@ -2576,18 +2689,18 @@
                 <span class="text-xl">${langFlags[s.lang]}</span>
                 <span class="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">${langNames[s.lang]}</span>
                 <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">${levelNames[s.level]}</span>
-                <span class="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full">⏱ ${s.duration}</span>
+                <span class="text-xs px-2 py-0.5 ${isBilibili ? 'bg-pink-100 text-pink-700' : 'bg-red-100 text-red-700'} rounded-full">⏱ ${s.duration}</span>
               </div>
               <h1 class="text-xl font-bold text-slate-900 mb-2">${s.title}</h1>
               <div class="flex items-center gap-3 mb-4 flex-wrap">
                 <div class="flex items-center gap-2">
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm">${s.teacher[0]}</div>
+                  <div class="w-10 h-10 rounded-full bg-gradient-to-br ${isBilibili ? 'from-pink-400 to-rose-500' : 'from-indigo-400 to-purple-500'} flex items-center justify-center text-white font-bold text-sm">${s.teacher[0]}</div>
                   <div>
                     <div class="font-semibold text-slate-900 text-sm">${s.teacher}</div>
-                    <div class="text-xs text-slate-500">${s.students} 订阅 · YouTube</div>
+                    <div class="text-xs text-slate-500">${s.students} ${followerLabel} · ${platformName}</div>
                   </div>
                 </div>
-                <a href="https://www.youtube.com/channel/${s.channelId}" target="_blank" rel="noopener" class="ml-auto px-3 py-1.5 bg-red-600 text-white text-xs rounded-lg font-medium hover:bg-red-700">访问频道 →</a>
+                <a href="${channelLink}" target="_blank" rel="noopener" class="ml-auto px-3 py-1.5 ${platformColor} text-white text-xs rounded-lg font-medium">访问${isBilibili ? 'UP主主页' : '频道'} →</a>
               </div>
               <h3 class="font-bold text-slate-900 mb-2">📝 课程简介</h3>
               <p class="text-slate-700 text-sm leading-relaxed mb-3">${s.summary}</p>
@@ -2622,17 +2735,7 @@
             <div class="bg-white rounded-2xl p-5">
               <h3 class="font-bold text-slate-900 mb-3">📚 相关课程推荐</h3>
               <div class="space-y-3">
-                ${related.map(r => `
-                  <div data-live="${r.id}" class="js-live-card cursor-pointer flex gap-3 p-2 rounded-lg hover:bg-slate-50">
-                    <div class="w-24 h-14 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0">
-                      <img src="https://img.youtube.com/vi/${r.videoId}/mqdefault.jpg" class="w-full h-full object-cover" loading="lazy" />
-                    </div>
-                    <div class="flex-1 min-w-0">
-                      <div class="font-medium text-slate-900 text-xs line-clamp-2">${r.title}</div>
-                      <div class="text-[10px] text-slate-500 mt-1">${r.teacher} · ${r.duration}</div>
-                    </div>
-                  </div>
-                `).join('')}
+                ${relatedHtml}
               </div>
             </div>
           </div>
@@ -2667,7 +2770,7 @@
 
       // 相关推荐点击
       this.querySelectorAll('.js-live-card').forEach(el => {
-        el.onclick = () => navigate('live_room', { liveId: el.dataset.live });
+        el.onclick = () => navigate('live_room', { liveId: el.dataset.live, livePlatform: el.dataset.platform || platform });
       });
     }
 

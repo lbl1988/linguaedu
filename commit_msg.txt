@@ -1,17 +1,20 @@
-feat: 直播课堂引入真实 YouTube 名师课程
+feat: 名师直播课堂新增B站国内名师板块，与YouTube国际版并列
 
-替换原有模拟直播为全网顶级语言教师的真实 YouTube 视频：
-- 英语 4 门：BBC Learning English、English with Lucy、Rachel's English
-- 日语 4 门：JapanesePod101、Japanese From Zero、Misa、Kaname Naito
-- 韩语 3 门：Talk To Me In Korean、Go! Billy Korean
+在保留原YouTube国际名师内容的基础上，新增同等规模的B站国内名师课程：
 
-功能升级：
-- YouTube iframe 真实播放器嵌入，支持字幕和全屏
-- 课程卡片展示视频缩略图、时长、教师订阅数
-- 语言筛选标签（全部/英/日/韩）
-- 课堂讨论区（实时弹幕互动）
-- 学习笔记功能（localStorage 持久化）
-- 相关课程推荐（同语言侧边栏）
-- 频道外链跳转（访问教师 YouTube 频道）
+双平台切换：
+- 顶部Tab切换：YouTube国际名师 / B站国内名师
+- 每个平台11门精选课程，英/日/韩三语覆盖
+- 统一的UI体验：卡片式列表 + 详情页 + 讨论区 + 笔记 + 相关推荐
 
-所有视频 ID 已通过 YouTube oEmbed API 验证为公开可播放。
+B站国内名师阵容：
+- 英语（4门）：英语兔(1102万粉)、英语的平行世界(280万粉)
+- 日语（4门）：叶子先生酱(56万粉)、Hero30日本语(120万粉)、Misa、Kaname
+- 韩语（3门）：韩语养乐多老师(69万粉) - 发音/语法/TOPIK全覆盖
+
+技术实现：
+- B站 iframe player嵌入（player.bilibili.com）
+- 支持弹幕、高清、全屏
+- UP主主页外链跳转
+- 语言筛选 + 平台切换 双重维度过滤
+- 学习笔记本地持久化（localStorage）
