@@ -1160,6 +1160,31 @@
       let index = 0;
       let correct = 0;
 
+      // 预收集本课所有对话的中文翻译 + 词汇翻译，作为干扰项题库
+      const allTranslations = dialogues.map(d => d.zh).filter(Boolean);
+      const vocabTranslations = (lesson.vocabulary || []).map(v => v.translation).filter(Boolean);
+      const distractorPool = [...new Set([...allTranslations, ...vocabTranslations])];
+
+      function pickDistractors(correctAns, count) {
+        const pool = distractorPool.filter(t => t && t !== correctAns);
+        // Fisher-Yates 随机抽取
+        const shuffled = [...pool].sort(() => Math.random() - 0.5);
+        const picked = shuffled.slice(0, count);
+        // 如果题库不够，补充通用干扰项（每题不同组合）
+        const fallbacks = [
+          '请再说一遍', '我不太确定', '能慢一点吗',
+          '这个很难', '让我想想', '没关系',
+          '稍等一下', '很高兴', '没关系'
+        ];
+        let fi = 0;
+        while (picked.length < count) {
+          const fb = fallbacks[fi % fallbacks.length];
+          if (!picked.includes(fb) && fb !== correctAns) picked.push(fb);
+          fi++;
+        }
+        return picked;
+      }
+
       function playAudio(text, lang) {
         if (!window.speechSynthesis) return;
         const utter = new SpeechSynthesisUtterance(text);
@@ -1184,11 +1209,9 @@
         const langKey = course.language === 'en' ? 'en' : course.language === 'ja' ? 'ja' : 'ko';
         const target = d[langKey];
         const translation = d.zh;
-        const options = [
-          translation,
-          '完全不同的意思',
-          '另一个无关的翻译'
-        ].sort(() => Math.random() - 0.5);
+        // 从本课其他对话/词汇翻译中抽取 2 个不同干扰项
+        const distractors = pickDistractors(translation, 2);
+        const options = [translation, ...distractors].sort(() => Math.random() - 0.5);
 
         container.innerHTML = `
           <div class="fade-in">
