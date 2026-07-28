@@ -1116,4 +1116,134 @@ const courses = [
   }
 ];
 
-module.exports = { courses };
+// ===================== 元数据注入：CEFR / JLPT / TOPIK 难度对标 =====================
+// 难度对标（按语种和级别自动标注）
+const DIFFICULTY_MAP = {
+  en: { beginner: 'A1', intermediate: 'B1', advanced: 'C1' },
+  ja: { beginner: 'N5', intermediate: 'N4', advanced: 'N3' },
+  ko: { beginner: 'TOPIK I-1', intermediate: 'TOPIK I-2', advanced: 'TOPIK II-4' }
+};
+// 学习目标标签（按课程主题智能识别）
+const GOAL_KEYWORDS = {
+  travel: ['购物', '交通', '旅行', '度假', '餐厅', '就餐', '天气', '外出', '出行', '购物场景'],
+  business: ['商务', '工作', '职场', '谈判', '电话', '邮件', '写作', '新闻', '公共', '演讲', '报告'],
+  study: ['语法', '写作', '赏析', '深入', '高级', '表达', '文化', '文学', '考', 'TOPIK', 'JLPT'],
+  conversation: ['问候', '介绍', '对话', '家庭', '成员', '兴趣', '娱乐', '社交', '流行']
+};
+// 教材版本映射
+const TEXTBOOK_MAP = {
+  en: { beginner: '新概念英语 第一册', intermediate: '新概念英语 第二册', advanced: '剑桥英语高级' },
+  ja: { beginner: '标准日本语 初级上', intermediate: '标准日本语 初级下', advanced: '标准日本语 中级' },
+  ko: { beginner: '首尔大学韩国语 1', intermediate: '首尔大学韩国语 2', advanced: '首尔大学韩国语 3' }
+};
+
+function detectGoals(course) {
+  const goals = new Set(['conversation']);
+  const text = (course.title + ' ' + course.description + ' ' +
+    course.lessons.map(l => l.title + ' ' + (l.type || '')).join(' ')).toLowerCase();
+  for (const lesson of course.lessons) {
+    const lessonText = (lesson.title || '').toLowerCase();
+    for (const [goal, keywords] of Object.entries(GOAL_KEYWORDS)) {
+      if (keywords.some(k => lessonText.includes(k))) goals.add(goal);
+    }
+  }
+  return Array.from(goals);
+}
+
+function durationCategory(count) {
+  if (count <= 6) return 'short';
+  if (count <= 15) return 'medium';
+  return 'long';
+}
+
+// 为每门课程注入元数据
+courses.forEach(c => {
+  c.difficulty = DIFFICULTY_MAP[c.language]?.[c.level] || 'A1';
+  c.textbook = TEXTBOOK_MAP[c.language]?.[c.level] || '通用教材';
+  c.goals = detectGoals(c);
+  c.durationCategory = durationCategory(c.lessons.length);
+  c.previewAvailable = true; // 所有课程首课免费
+  c.previewScreenshots = [
+    { caption: '课程导览与学习目标', emoji: '🎯' },
+    { caption: '核心词汇与发音示范', emoji: '🔤' },
+    { caption: '情景对话与互动练习', emoji: '💬' }
+  ];
+  // 每课注入随堂测验（基于该课词汇和语法）
+  c.lessons.forEach(l => {
+    if (!l.quiz) {
+      const vocab = l.vocabulary || [];
+      const examples = (l.grammar && l.grammar.examples) || [];
+      const quizItems = [];
+      // 词汇选择题
+      vocab.slice(0, 2).forEach(v => {
+        const distractors = vocab.filter(x => x.word !== v.word).slice(0, 3).map(x => x.translation);
+        while (distractors.length < 3) distractors.push('其他');
+        quizItems.push({
+          type: 'vocab',
+          question: `"${v.word}" 的中文意思是？`,
+          options: [v.translation, ...distractors.slice(0, 3)].slice(0, 4),
+          answer: 0
+        });
+      });
+      // 语法判断题
+      if (examples.length > 0) {
+        const correct = examples[0];
+        const wrongs = examples.slice(1, 3);
+        if (wrongs.length > 0) {
+          const allOpts = [correct, ...wrongs].slice(0, 4);
+          quizItems.push({
+            type: 'grammar',
+            question: `下列哪一句语法使用是正确的？`,
+            options: allOpts,
+            answer: 0
+          });
+        }
+      }
+      l.quiz = quizItems.slice(0, 4);
+    }
+  });
+});
+
+// ===================== AI 情景对话剧本 =====================
+const SCENARIO_DIALOGS = {
+  cafe: {
+    name: '☕ 咖啡馆点单',
+    icon: '☕',
+    bg: 'from-amber-100 to-orange-100',
+    steps: [
+      { speaker: '店员', en: 'Welcome! What can I get for you today?', ja: 'いらっしゃいませ！何になさいますか？', ko: '어서오세요! 주문하시겠어요?', zh: '欢迎光临！请问需要点什么？' },
+      { speaker: '我',  en: 'I would like a cappuccino, please.', ja: 'カプチーノをください。', ko: '카푸치노 주세요.', zh: '我想要一杯卡布奇诺。' },
+      { speaker: '店员', en: 'Sure. For here or to go?', ja: '店内でお召し上がりですか？お持ち帰りですか？', ko: '매장에서 드릴까요? 가져가실까요?', zh: '好的，堂食还是外带？' },
+      { speaker: '我',  en: 'For here, thank you.', ja: 'ここで食べます、ありがとう。', ko: '매장에서요, 감사합니다.', zh: '堂食，谢谢。' },
+      { speaker: '店员', en: 'Anything else?', ja: '他にご注文はありますか？', ko: '더 필요하신 거 있으세요?', zh: '还需要别的吗？' },
+      { speaker: '我',  en: 'A chocolate croissant, please.', ja: 'チョコクロワッサンもください。', ko: '초콜릿 크루아상도 주세요.', zh: '再来一个巧克力可颂。' }
+    ]
+  },
+  airport: {
+    name: '✈️ 机场值机',
+    icon: '✈️',
+    bg: 'from-sky-100 to-blue-100',
+    steps: [
+      { speaker: '职员', en: 'Good morning. May I see your passport and ticket?', ja: 'おはようございます。パスポートとチケットを拝見します。', ko: '좋은 아침입니다. 여권과 티켓을 보여주실 수 있나요?', zh: '早上好，请出示您的护照和机票。' },
+      { speaker: '我',  en: 'Here you are.', ja: 'はい、どうぞ。', ko: '여기 있습니다.', zh: '给您。' },
+      { speaker: '职员', en: 'How many bags will you check in?', ja: 'お預けになる荷物はいくつですか？', ko: '위탁하실 짐은 몇 개인가요?', zh: '您要托运几件行李？' },
+      { speaker: '我',  en: 'One suitcase, please.', ja: 'スーツケース1つをお願いします。', ko: '캐리어 1개요.', zh: '一件行李箱。' },
+      { speaker: '职员', en: 'Your gate is B12. Boarding starts at 10:30.', ja: '搭乗口はB12、搭乗開始は10時30分です。', ko: '탑승구는 B12, 탑승 시작은 10시 30분입니다.', zh: '您的登机口是B12，10:30开始登机。' },
+      { speaker: '我',  en: 'Thank you very much!', ja: 'どうもありがとうございました！', ko: '정말 감사합니다!', zh: '非常感谢！' }
+    ]
+  },
+  office: {
+    name: '💼 办公室日常',
+    icon: '💼',
+    bg: 'from-slate-100 to-indigo-100',
+    steps: [
+      { speaker: '同事', en: 'Good morning! How was your weekend?', ja: 'おはよう！週末はどうだった？', ko: '좋은 아침! 주말은 어땠어?', zh: '早上好！周末过得怎么样？' },
+      { speaker: '我',  en: 'Pretty good, I recharged a lot.', ja: '元気だったよ、ゆっくり休めた。', ko: '꽤 좋았어, 푹 쉬었거든.', zh: '挺好的，我好好休息了一下。' },
+      { speaker: '同事', en: 'Are you ready for the meeting at 10?', ja: '10時の会議の準備できた？', ko: '10시 회의 준비됐어?', zh: '10点的会议准备好了吗？' },
+      { speaker: '我',  en: 'Almost done. I will send the slides in a minute.', ja: 'あと少し。すぐスライド送るね。', ko: '거의 다 됐어. 슬라이드 바로 보낼게.', zh: '差不多了，我马上发幻灯片。' },
+      { speaker: '同事', en: 'Great, see you in the meeting room.', ja: '了解、会議室で会おう。', ko: '좋아, 회의실에서 보자.', zh: '好的，会议室见。' }
+    ]
+  }
+};
+
+module.exports = { courses, SCENARIO_DIALOGS };

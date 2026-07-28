@@ -91,7 +91,17 @@
       lesson: renderLesson,
       dashboard: renderDashboard,
       community: renderCommunity,
-      achievements: renderAchievements
+      achievements: renderAchievements,
+      placement: renderPlacement,
+      studyplan: renderStudyPlan,
+      certificates: renderCertificates,
+      report: renderReport,
+      scenario: renderScenarioList,
+      scenario_practice: renderScenarioPractice,
+      reminders: renderReminders,
+      unit_test: renderUnitTest,
+      live: renderLiveList,
+      live_room: renderLiveRoom
     };
 
     async function render() {
@@ -126,6 +136,7 @@
             ${navLink('首页', 'home')}
             ${navLink('课程中心', 'courses')}
             ${state.user ? navLink('学习中心', 'dashboard') : ''}
+            ${state.user ? navLink('直播', 'live') : ''}
             ${state.user ? navLink('成就', 'achievements') : ''}
             ${state.user ? navLink('社区', 'community') : ''}
           </div>
@@ -173,8 +184,31 @@
           const stats = await api.get('/api/stats');
           $('xp_badge').textContent = `${stats.totalXp} XP`;
         } catch(e) {}
+        // 加载继续学习记忆
+        try {
+          const cont = await api.get('/api/continue');
+          if (cont && cont.course_id) {
+            state.continueLearning = cont;
+          }
+        } catch(e) {}
       }
+      const continueCard = state.user && state.continueLearning ? `
+        <section class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 mb-8 text-white shadow-lg">
+          <div class="flex items-center justify-between flex-wrap gap-4">
+            <div class="flex items-center gap-4">
+              <div class="text-5xl">▶️</div>
+              <div>
+                <div class="text-sm text-indigo-100">继续上次的学习</div>
+                <div class="text-xl font-bold">${state.continueLearning.course_id} · 课时 ${state.continueLearning.lesson_id}</div>
+                <div class="text-xs text-indigo-200 mt-1">更新于 ${new Date(state.continueLearning.updated_at).toLocaleString('zh-CN')}</div>
+              </div>
+            </div>
+            <button id="continue_btn" class="px-6 py-3 bg-white text-indigo-600 font-semibold rounded-xl hover:bg-indigo-50">继续学习 →</button>
+          </div>
+        </section>
+      ` : '';
       this.innerHTML = `
+        ${continueCard}
         <section class="py-12 md:py-20 text-center">
           <div class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-6">🚀 沉浸式语言学习平台</div>
           <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
@@ -185,13 +219,14 @@
           <div class="flex gap-4 justify-center flex-wrap">
             <button onclick="navigate('courses')" class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200">开始学习 →</button>
             ${!state.user ? `<button onclick="navigate('register')" class="px-8 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:border-indigo-400">注册账号</button>` : ''}
+            ${state.user ? `<button onclick="navigate('placement')" class="px-8 py-3 bg-amber-100 text-amber-700 font-semibold rounded-xl border-2 border-amber-200 hover:border-amber-400">📝 水平测试</button>` : ''}
           </div>
         </section>
 
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
-          ${featureCard('📚', '分级课程体系', '从入门到精通，科学分级，循序渐进')}
-          ${featureCard('🎯', '互动式学习', '单词记忆、语法练习、口语跟读、听力训练一体化')}
-          ${featureCard('📊', '进度追踪', '可视化学习数据，成就系统持续激励')}
+          ${featureCard('📚', '分级课程体系', '从入门到精通，CEFR/JLPT/TOPIK 难度对标')}
+          ${featureCard('🎯', '互动式学习', '单词记忆、语法练习、口语跟读、AI情景对话')}
+          ${featureCard('📊', '进度追踪', '可视化学习数据、能力雷达图、结课证书')}
         </section>
 
         <section class="bg-white rounded-3xl shadow-sm p-8 md:p-12">
@@ -202,6 +237,37 @@
             ${languageCard('ko', '韩语', '🇰🇷', 'from-purple-500 to-indigo-500')}
           </div>
         </section>
+
+        ${state.user ? `
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
+          ${shortcutCard('🎭', 'AI情景对话', 'scenario', 'from-amber-100 to-orange-100')}
+          ${shortcutCard('📋', '学习计划', 'studyplan', 'from-pink-100 to-rose-100')}
+          ${shortcutCard('🏅', '我的证书', 'certificates', 'from-emerald-100 to-green-100')}
+          ${shortcutCard('📊', '学习报告', 'report', 'from-sky-100 to-blue-100')}
+          ${shortcutCard('🎥', '直播导学', 'live', 'from-red-100 to-pink-100')}
+          ${shortcutCard('📝', '水平测试', 'placement', 'from-yellow-100 to-amber-100')}
+          ${shortcutCard('🔔', '学习提醒', 'reminders', 'from-violet-100 to-purple-100')}
+          ${shortcutCard('🏆', '成就墙', 'achievements', 'from-fuchsia-100 to-rose-100')}
+        </section>` : ''}
+      `;
+      if (state.continueLearning) {
+        const cb = $('continue_btn');
+        if (cb) cb.onclick = async () => {
+          const all = await api.get('/api/courses');
+          const c = all.find(x => x.id === state.continueLearning.course_id);
+          if (!c) return navigate('courses');
+          const l = c.lessons.find(x => x.id === state.continueLearning.lesson_id) || c.lessons[0];
+          navigate('lesson', { currentCourse: c, currentLesson: l });
+        };
+      }
+    }
+
+    function shortcutCard(icon, label, page, gradient) {
+      return `
+        <button onclick="navigate('${page}')" class="bg-gradient-to-br ${gradient} rounded-2xl p-4 card-hover text-left">
+          <div class="text-3xl mb-1">${icon}</div>
+          <div class="text-sm font-semibold text-slate-800">${label}</div>
+        </button>
       `;
     }
 
@@ -325,33 +391,212 @@
 
     async function renderCourses() {
       const lang = state.filter_lang || '';
-      const url = lang ? `/api/courses?language=${lang}` : '/api/courses';
-      const courses = await api.get(url);
-      const filtered = lang ? courses : courses;
+      const filterGoal = state.filter_goal || '';
+      const filterDuration = state.filter_duration || '';
+      const filterTextbook = state.filter_textbook || '';
+      const searchQ = state.search_q || '';
+      const params = new URLSearchParams();
+      if (lang) params.set('language', lang);
+      if (filterGoal) params.set('goal', filterGoal);
+      if (filterDuration) params.set('duration', filterDuration);
+      if (filterTextbook) params.set('textbook', filterTextbook);
+      if (searchQ) params.set('q', searchQ);
+      const url = '/api/courses/search' + (params.toString() ? '?' + params.toString() : '');
+      const [filtered, filters] = await Promise.all([
+        api.get(url),
+        api.get('/api/courses/filters')
+      ]);
+      const GOAL_LABELS = { conversation: '日常对话', travel: '旅游出行', business: '职场商务', study: '考级/学习' };
+      const DUR_LABELS = { short: '短训班(≤6)', medium: '系统班(7-15)', long: '长期班(>15)' };
+
+      // 热门 TOP 3：模拟"本月热门"
+      const HOT_TOP3 = filtered.slice(0, 3);
+      // 新上线标识：取最后 3 门（按 id 倒序）
+      const NEW_COURSES = [...filtered].reverse().slice(0, 3);
+
       this.innerHTML = `
         <div class="mb-6">
           <h1 class="text-3xl font-bold text-slate-900 mb-2">课程中心</h1>
-          <p class="text-slate-600">选择你感兴趣的语言和级别，开启学习之旅</p>
+          <p class="text-slate-600">选择语言、目标、时长，精准找到适合你的课程</p>
         </div>
-        <div class="flex gap-2 mb-8 flex-wrap">
-          ${filterButton('', '全部语言')}
-          ${filterButton('en', '🇬🇧 英语')}
-          ${filterButton('ja', '🇯🇵 日语')}
-          ${filterButton('ko', '🇰🇷 韩语')}
+
+        ${!searchQ && !filterGoal && !filterDuration && !filterTextbook && !lang ? `
+          <div class="grid md:grid-cols-2 gap-5 mb-6">
+            <div class="bg-gradient-to-r from-rose-100 to-pink-100 rounded-2xl p-5 border-2 border-pink-200">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-2xl">🔥</span>
+                <h3 class="font-bold text-slate-900">本月热门 TOP 3</h3>
+              </div>
+              <div class="space-y-2">
+                ${HOT_TOP3.map((c, i) => `
+                  <div data-course-sid="${storeObj('course', c)}" class="js-hot-card cursor-pointer flex items-center gap-3 p-2 bg-white/70 rounded-lg hover:bg-white">
+                    <div class="text-2xl font-bold text-pink-600 w-8 text-center">${i+1}</div>
+                    <div class="text-2xl">${c.cover}</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-slate-900 text-sm truncate">${c.title}</div>
+                      <div class="text-xs text-slate-500">${c.languageName} · ${c.levelName} · ${c.lessons.length}课时</div>
+                    </div>
+                    <span class="text-xs text-pink-600 font-medium">→</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="bg-gradient-to-r from-emerald-100 to-teal-100 rounded-2xl p-5 border-2 border-emerald-200">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-2xl">✨</span>
+                <h3 class="font-bold text-slate-900">新上线课程</h3>
+              </div>
+              <div class="space-y-2">
+                ${NEW_COURSES.map(c => `
+                  <div data-course-sid="${storeObj('course', c)}" class="js-hot-card cursor-pointer flex items-center gap-3 p-2 bg-white/70 rounded-lg hover:bg-white">
+                    <div class="text-2xl">${c.cover}</div>
+                    <div class="flex-1 min-w-0">
+                      <div class="font-semibold text-slate-900 text-sm truncate">${c.title}</div>
+                      <div class="text-xs text-slate-500">${c.languageName} · ${c.levelName}</div>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-500 text-white text-[10px] rounded-full">NEW</span>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="bg-white rounded-2xl p-4 mb-6 shadow-sm">
+          <div class="flex gap-2 mb-3 flex-wrap">
+            <input id="search_input" type="text" value="${searchQ}" placeholder="🔍 搜索课程：零基础、商务、考级..." class="flex-1 min-w-[200px] px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none" />
+            <button id="search_btn" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium">搜索</button>
+          </div>
+          <div class="flex gap-2 flex-wrap items-center">
+            <span class="text-sm text-slate-500">语言：</span>
+            ${filterButton('', '全部')}
+            ${filterButton('en', '🇬🇧 英语')}
+            ${filterButton('ja', '🇯🇵 日语')}
+            ${filterButton('ko', '🇰🇷 韩语')}
+          </div>
+          <div class="flex gap-2 flex-wrap items-center mt-2">
+            <span class="text-sm text-slate-500">学习目标：</span>
+            ${goalButton('', '全部')}
+            ${Object.entries(GOAL_LABELS).map(([k,v]) => goalButton(k, v)).join('')}
+          </div>
+          <div class="flex gap-2 flex-wrap items-center mt-2">
+            <span class="text-sm text-slate-500">课时：</span>
+            ${durButton('', '全部')}
+            ${Object.entries(DUR_LABELS).map(([k,v]) => durButton(k, v)).join('')}
+          </div>
+          <div class="flex gap-2 flex-wrap items-center mt-2">
+            <span class="text-sm text-slate-500">教材：</span>
+            ${textbookButton('', '全部')}
+            ${filters.textbooks.map(t => textbookButton(t, t)).join('')}
+          </div>
         </div>
+
+        <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+          <div class="text-sm text-slate-600">共找到 <span class="font-bold text-indigo-600">${filtered.length}</span> 门课程</div>
+          ${(filterGoal || filterDuration || filterTextbook || searchQ) ? `<button id="clear_filter" class="text-sm text-indigo-600 hover:underline">清除筛选 ×</button>` : ''}
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          ${filtered.map(c => courseCard(c)).join('')}
+          ${filtered.length > 0 ? filtered.map(c => courseCard(c)).join('') :
+            `<div class="col-span-3 bg-white rounded-2xl p-12 text-center text-slate-500">没有匹配的课程，试试调整筛选条件</div>`}
         </div>
       `;
       document.querySelectorAll('[data-filter]').forEach(btn => {
         btn.onclick = () => navigate('courses', { filter_lang: btn.dataset.filter });
       });
-      document.querySelectorAll('.js-course-card').forEach(el => {
+      document.querySelectorAll('[data-goal]').forEach(btn => {
+        btn.onclick = () => navigate('courses', { filter_goal: btn.dataset.goal });
+      });
+      document.querySelectorAll('[data-dur]').forEach(btn => {
+        btn.onclick = () => navigate('courses', { filter_duration: btn.dataset.dur });
+      });
+      document.querySelectorAll('[data-tb]').forEach(btn => {
+        btn.onclick = () => navigate('courses', { filter_textbook: btn.dataset.tb });
+      });
+      const clearBtn = $('clear_filter');
+      if (clearBtn) clearBtn.onclick = () => navigate('courses', { filter_goal: '', filter_duration: '', filter_textbook: '', search_q: '' });
+      $('search_btn').onclick = () => navigate('courses', { search_q: $('search_input').value.trim() });
+      $('search_input').onkeydown = (e) => { if (e.key === 'Enter') $('search_btn').click(); };
+      document.querySelectorAll('.js-course-card, .js-hot-card').forEach(el => {
         el.onclick = () => {
           const course = getStored('course', el.dataset.courseSid);
           navigate('course', { currentCourse: course });
         };
       });
+      document.querySelectorAll('.js-preview-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const course = getStored('course', btn.dataset.courseSid);
+          showCoursePreview(course);
+        };
+      });
+    }
+
+    function goalButton(g, label) {
+      const active = (state.filter_goal || '') === g;
+      return `<button data-goal="${g}" class="px-3 py-1.5 rounded-lg text-xs font-medium ${active ? 'bg-pink-600 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-pink-400'}">${label}</button>`;
+    }
+    function durButton(d, label) {
+      const active = (state.filter_duration || '') === d;
+      return `<button data-dur="${d}" class="px-3 py-1.5 rounded-lg text-xs font-medium ${active ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-emerald-400'}">${label}</button>`;
+    }
+    function textbookButton(t, label) {
+      const active = (state.filter_textbook || '') === t;
+      return `<button data-tb="${t}" class="px-3 py-1.5 rounded-lg text-xs font-medium ${active ? 'bg-amber-600 text-white' : 'bg-white border border-slate-200 text-slate-700 hover:border-amber-400'}">${label}</button>`;
+    }
+
+    function showCoursePreview(course) {
+      const modal = document.createElement('div');
+      modal.className = 'fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 fade-in';
+      const courseSid = storeObj('course', course);
+      modal.innerHTML = `
+        <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div class="h-40 bg-gradient-to-br ${course.color} flex items-center justify-center text-7xl relative">
+            ${course.cover}
+            <button class="js-close-preview absolute top-3 right-3 w-9 h-9 rounded-full bg-white/80 hover:bg-white text-slate-700 font-bold">×</button>
+          </div>
+          <div class="p-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">${course.title}</h2>
+            <p class="text-slate-600 mb-4">${course.description}</p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="px-2.5 py-1 bg-indigo-100 text-indigo-700 rounded-full text-xs">📚 ${course.lessons.length} 课时</span>
+              <span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-full text-xs">🎯 难度 ${course.difficulty}</span>
+              <span class="px-2.5 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs">📖 ${course.textbook}</span>
+              <span class="px-2.5 py-1 bg-pink-100 text-pink-700 rounded-full text-xs">⏱️ ${course.durationCategory === 'short' ? '短训班' : course.durationCategory === 'medium' ? '系统班' : '长期班'}</span>
+            </div>
+            <h3 class="font-bold text-slate-900 mb-3">📸 课件预览</h3>
+            <div class="grid grid-cols-3 gap-2 mb-5">
+              ${course.previewScreenshots.map(s => `
+                <div class="bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl p-4 text-center">
+                  <div class="text-4xl mb-1">${s.emoji}</div>
+                  <div class="text-xs text-slate-600">${s.caption}</div>
+                </div>
+              `).join('')}
+            </div>
+            <h3 class="font-bold text-slate-900 mb-3">🎯 学习目标</h3>
+            <div class="flex flex-wrap gap-2 mb-5">
+              ${(course.goals || []).map(g => `<span class="px-3 py-1 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-200 text-indigo-700 rounded-full text-xs">${({conversation:'日常对话',travel:'旅游出行',business:'职场商务',study:'考级/学习'})[g] || g}</span>`).join('')}
+            </div>
+            <div class="flex gap-3">
+              <button class="js-go-first-lesson flex-1 py-3 bg-indigo-600 text-white font-semibold rounded-xl" data-course-sid="${courseSid}">▶️ 试看第1课时</button>
+              <button class="js-enroll-course flex-1 py-3 bg-white border-2 border-indigo-200 text-indigo-600 font-semibold rounded-xl" data-course-sid="${courseSid}">📥 报名学习</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+      modal.querySelector('.js-close-preview').onclick = () => modal.remove();
+      modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+      modal.querySelector('.js-go-first-lesson').onclick = () => {
+        const c = getStored('course', courseSid);
+        navigate('course', { currentCourse: c });
+        modal.remove();
+      };
+      modal.querySelector('.js-enroll-course').onclick = () => {
+        const c = getStored('course', courseSid);
+        navigate('course', { currentCourse: c });
+        modal.remove();
+      };
     }
 
     function filterButton(lang, label) {
@@ -362,21 +607,30 @@
     function courseCard(c) {
       const langFlags = { en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷' };
       const sid = storeObj('course', c);
+      const diffColor = c.difficulty?.startsWith('A') || c.difficulty?.startsWith('N') ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700';
       return `
         <div data-course-sid="${sid}" class="cursor-pointer bg-white rounded-2xl overflow-hidden card-hover border border-slate-100 js-course-card">
-          <div class="h-32 bg-gradient-to-br ${c.color} flex items-center justify-center text-6xl">
+          <div class="h-32 bg-gradient-to-br ${c.color} flex items-center justify-center text-6xl relative">
             ${c.cover}
+            <span class="absolute top-3 right-3 ${diffColor} text-xs px-2 py-1 rounded-full font-semibold">${c.difficulty || ''}</span>
           </div>
           <div class="p-5">
-            <div class="flex items-center gap-2 mb-2">
+            <div class="flex items-center gap-2 mb-2 flex-wrap">
               <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full">${langFlags[c.language]} ${c.languageName}</span>
               <span class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">${c.levelName}</span>
+              <span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">${c.textbook}</span>
             </div>
             <h3 class="font-bold text-lg text-slate-900 mb-1">${c.title}</h3>
-            <p class="text-slate-500 text-sm mb-3">${c.description}</p>
-            <div class="flex items-center justify-between text-xs text-slate-500">
-              <span>📖 ${c.lessons.length} 课时</span>
-              <span class="text-indigo-600 font-medium">开始学习 →</span>
+            <p class="text-slate-500 text-sm mb-3 line-clamp-2">${c.description}</p>
+            <div class="flex flex-wrap gap-1 mb-3">
+              ${(c.goals || []).slice(0, 3).map(g => `<span class="text-[10px] px-1.5 py-0.5 bg-slate-100 text-slate-600 rounded">${({conversation:'日常',travel:'旅游',business:'商务',study:'考级'})[g] || g}</span>`).join('')}
+            </div>
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-3">
+              <span>📖 ${c.lessons.length} 课时 · ⏱️ ${c.durationCategory === 'short' ? '短训' : c.durationCategory === 'medium' ? '系统' : '长期'}</span>
+            </div>
+            <div class="flex gap-2">
+              <button class="js-preview-btn flex-1 py-2 bg-indigo-50 text-indigo-700 rounded-lg text-xs font-medium hover:bg-indigo-100" data-course-sid="${sid}">👁 预览</button>
+              <span class="flex-1 py-2 text-center text-indigo-600 font-medium text-xs">开始学习 →</span>
             </div>
           </div>
         </div>
@@ -387,22 +641,74 @@
       const c = state.currentCourse;
       if (!c) return navigate('courses');
       const courseSid = storeObj('course', c);
+      // 拉取解锁状态 & 进度
+      let unlocked = c.lessons.map(l => l.id);
+      let completedMap = {};
+      if (state.user) {
+        try {
+          const r = await api.get('/api/lesson-unlock?course_id=' + c.id);
+          unlocked = r.unlocked;
+          const prog = await api.get('/api/progress');
+          prog.forEach(p => { if (p.completed) completedMap[p.lesson_id] = true; });
+        } catch(e) {}
+      }
+      const completedCount = c.lessons.filter(l => completedMap[l.id]).length;
+      const totalCount = c.lessons.length;
+      const percent = totalCount ? Math.round(completedCount / totalCount * 100) : 0;
+      // 估算剩余天数（假设每天1课）
+      const remaining = totalCount - completedCount;
+      const estDays = remaining > 0 ? `约 ${remaining} 天` : '已完成 🎉';
+
       this.innerHTML = `
         <div class="mb-6">
           <button class="js-back-courses text-sm text-indigo-600 hover:underline mb-2">← 返回课程列表</button>
-          <div class="flex items-center gap-3 mb-2">
+          <div class="flex items-center gap-3 mb-2 flex-wrap">
             <div class="text-5xl">${c.cover}</div>
-            <div>
+            <div class="flex-1">
               <h1 class="text-3xl font-bold text-slate-900">${c.title}</h1>
               <p class="text-slate-600">${c.description}</p>
+              <div class="flex flex-wrap gap-2 mt-2">
+                <span class="text-xs px-2 py-1 bg-amber-100 text-amber-700 rounded-full">🎯 ${c.difficulty}</span>
+                <span class="text-xs px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full">📖 ${c.textbook}</span>
+                <span class="text-xs px-2 py-1 bg-pink-100 text-pink-700 rounded-full">⏱️ ${c.durationCategory === 'short' ? '短训班' : c.durationCategory === 'medium' ? '系统班' : '长期班'}</span>
+              </div>
             </div>
+            <button class="js-preview-btn px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm font-medium" data-course-sid="${courseSid}">👁 课程预览</button>
           </div>
+          ${state.user ? `
+            <div class="mt-4 bg-white rounded-xl p-4 border border-slate-100">
+              <div class="flex items-center justify-between text-sm text-slate-600 mb-2">
+                <span>学习进度：${completedCount} / ${totalCount} 课时</span>
+                <span class="text-indigo-600 font-medium">${percent}% · ${estDays}</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2.5">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-2.5 rounded-full transition-all" style="width: ${percent}%"></div>
+              </div>
+            </div>` : ''}
         </div>
         <div class="grid gap-4">
-          ${c.lessons.map((l, i) => lessonCard(c, l, i)).join('')}
+          ${c.lessons.map((l, i) => lessonCard(c, l, i, unlocked.includes(l.id), completedMap[l.id])).join('')}
         </div>
+        ${state.user && completedCount === totalCount && totalCount > 0 ? `
+          <div class="mt-8 bg-gradient-to-r from-yellow-100 to-amber-100 border-2 border-amber-300 rounded-2xl p-6 text-center">
+            <div class="text-5xl mb-2">🎓</div>
+            <h3 class="text-2xl font-bold text-amber-800 mb-2">恭喜！你已完成本课程全部课时</h3>
+            <p class="text-amber-700 mb-4">通过测验即可获得结课证书</p>
+            <button id="issue_cert_btn" class="px-6 py-3 bg-amber-600 text-white font-semibold rounded-xl">🏅 申请结课证书</button>
+          </div>` : ''}
+        ${state.user && completedCount >= 3 ? `
+          <div class="mt-6 bg-white rounded-2xl p-5 border border-slate-100">
+            <div class="flex items-center justify-between flex-wrap gap-3">
+              <div>
+                <h3 class="font-bold text-slate-900">📋 单元综合测验</h3>
+                <p class="text-sm text-slate-500">每 3 课时一个单元，答对 60% 即可通过</p>
+              </div>
+              <button id="start_unit_test" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">开始测验 →</button>
+            </div>
+          </div>` : ''}
       `;
       document.querySelectorAll('.js-lesson-card').forEach(el => {
+        if (el.classList.contains('locked')) return;
         el.onclick = () => {
           const course = getStored('course', el.dataset.courseSid);
           const lesson = getStored('lesson', el.dataset.lessonSid);
@@ -410,24 +716,44 @@
         };
       });
       document.querySelector('.js-back-courses').onclick = () => navigate('courses');
+      document.querySelectorAll('.js-preview-btn').forEach(btn => {
+        btn.onclick = (e) => {
+          e.stopPropagation();
+          const course = getStored('course', btn.dataset.courseSid);
+          showCoursePreview(course);
+        };
+      });
+      const certBtn = $('issue_cert_btn');
+      if (certBtn) certBtn.onclick = async () => {
+        const r = await api.post('/api/certificate/issue', { course_id: c.id, course_title: c.title, score: 100 });
+        if (r.success) {
+          alert('🎉 证书已生成！前往「我的证书」查看');
+          navigate('certificates');
+        }
+      };
+      const unitBtn = $('start_unit_test');
+      if (unitBtn) unitBtn.onclick = () => navigate('unit_test', { unitCourseId: c.id, unitIndex: 0, currentCourse: c });
     }
 
-    function lessonCard(course, lesson, index) {
-      const typeIcons = { pronunciation: '🗣️', conversation: '💬', grammar: '📝', numbers: '🔢', scenario: '🎭', business: '💼', writing: '✍️' };
-      const typeNames = { pronunciation: '发音', conversation: '会话', grammar: '语法', numbers: '数字', scenario: '情景', business: '商务', writing: '写作' };
+    function lessonCard(course, lesson, index, unlocked, completed) {
+      const typeIcons = { pronunciation: '🗣️', conversation: '💬', grammar: '📝', numbers: '🔢', scenario: '🎭', business: '💼', writing: '✍️', listening: '🎧', speaking: '🎤' };
+      const typeNames = { pronunciation: '发音', conversation: '会话', grammar: '语法', numbers: '数字', scenario: '情景', business: '商务', writing: '写作', listening: '听力', speaking: '口语' };
       const courseSid = storeObj('course', course);
       const lessonSid = storeObj('lesson', lesson);
+      const statusIcon = !unlocked ? '🔒' : (completed ? '✅' : '▶️');
+      const statusLabel = !unlocked ? '未解锁' : (completed ? '已完成' : '可学习');
       return `
-        <div data-course-sid="${courseSid}" data-lesson-sid="${lessonSid}" class="cursor-pointer bg-white rounded-xl p-5 border border-slate-100 card-hover flex items-center gap-4 js-lesson-card">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl font-bold">${index + 1}</div>
+        <div data-course-sid="${courseSid}" data-lesson-sid="${lessonSid}" class="${!unlocked ? 'locked opacity-60' : ''} cursor-pointer bg-white rounded-xl p-5 border border-slate-100 card-hover flex items-center gap-4 js-lesson-card">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br ${!unlocked ? 'from-slate-300 to-slate-400' : 'from-indigo-500 to-purple-500'} flex items-center justify-center text-white text-xl font-bold">${!unlocked ? '🔒' : (index + 1)}</div>
           <div class="flex-1">
             <div class="flex items-center gap-2 mb-1">
               <span class="text-lg">${typeIcons[lesson.type] || '📖'}</span>
               <h3 class="font-semibold text-slate-900">${lesson.title}</h3>
+              ${completed ? '<span class="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">✓</span>' : ''}
             </div>
-            <div class="text-sm text-slate-500">${typeNames[lesson.type]} · ${lesson.duration}分钟 · ${(lesson.vocabulary?.length || 0)}个单词</div>
+            <div class="text-sm text-slate-500">${typeNames[lesson.type] || '课程'} · ${lesson.duration}分钟 · ${(lesson.vocabulary?.length || 0)}个单词 · ${statusLabel}</div>
           </div>
-          <div class="text-indigo-500 text-2xl">→</div>
+          <div class="text-2xl">${statusIcon}</div>
         </div>
       `;
     }
@@ -437,11 +763,17 @@
       const lesson = state.currentLesson;
       if (!course || !lesson) return navigate('courses');
 
+      // 记录继续学习
+      if (state.user) {
+        api.post('/api/continue', { course_id: course.id, lesson_id: lesson.id }).catch(() => {});
+      }
+
       const tabs = [
-        { id: 'vocab', label: '📖 单词记忆', render: renderVocabulary },
-        { id: 'grammar', label: '📝 语法练习', render: renderGrammar },
-        { id: 'speaking', label: '🎤 口语跟读', render: renderSpeaking },
-        { id: 'listening', label: '🎧 听力训练', render: renderListening }
+        { id: 'vocab', label: '📖 单词', render: renderVocabulary },
+        { id: 'grammar', label: '📝 语法', render: renderGrammar },
+        { id: 'speaking', label: '🎤 口语', render: renderSpeaking },
+        { id: 'listening', label: '🎧 听力', render: renderListening },
+        { id: 'quiz', label: '✏️ 测验', render: renderLessonQuiz }
       ];
 
       this.innerHTML = `
@@ -454,8 +786,8 @@
           ${tabs.map((t, i) => `<button data-tab="${t.id}" class="lesson-tab px-4 py-2 rounded-lg text-sm font-medium whitespace-nowrap ${i === 0 ? 'bg-indigo-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}">${t.label}</button>`).join('')}
         </div>
         <div id="lesson_content" class="bg-white rounded-2xl p-6 min-h-[400px]"></div>
-        <div class="mt-6 flex gap-3">
-          <button id="complete_btn" class="flex-1 py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700">完成本课 ✓</button>
+        <div class="mt-6 flex gap-3 flex-wrap">
+          <button id="complete_btn" class="flex-1 min-w-[160px] py-3 bg-green-600 text-white font-semibold rounded-xl hover:bg-green-700">完成本课 ✓</button>
           <button class="js-back-course2 px-6 py-3 bg-white border border-slate-200 text-slate-700 font-semibold rounded-xl hover:border-indigo-400">返回课时列表</button>
         </div>
       `;
@@ -482,6 +814,77 @@
       $('complete_btn').onclick = completeLesson;
 
       renderTab();
+    }
+
+    function renderLessonQuiz(container, course, lesson) {
+      const quiz = lesson.quiz || [];
+      if (quiz.length === 0) {
+        container.innerHTML = '<div class="text-center py-12 text-slate-500">本课时暂无测验</div>';
+        return;
+      }
+      let answers = new Array(quiz.length).fill(-1);
+      let submitted = false;
+
+      function render() {
+        container.innerHTML = `
+          <div class="fade-in">
+            <div class="mb-6">
+              <h3 class="text-xl font-bold text-slate-900 mb-1">✏️ 随堂测验（${quiz.length}题）</h3>
+              <p class="text-sm text-slate-500">答对60%即可解锁下一课</p>
+            </div>
+            <div class="space-y-6">
+              ${quiz.map((q, qi) => `
+                <div class="bg-slate-50 rounded-xl p-5" data-qi="${qi}">
+                  <div class="font-medium text-slate-900 mb-3">${qi + 1}. ${q.question}</div>
+                  <div class="space-y-2">
+                    ${q.options.map((o, oi) => `
+                      <button data-qi="${qi}" data-oi="${oi}" class="quiz-opt w-full p-3 bg-white rounded-lg text-left border-2 ${submitted ? (oi === q.answer ? 'border-green-500 bg-green-50' : (answers[qi] === oi ? 'border-red-500 bg-red-50' : 'border-transparent')) : (answers[qi] === oi ? 'border-indigo-500' : 'border-transparent hover:border-indigo-300')}">${String.fromCharCode(65 + oi)}. ${o}</button>
+                    `).join('')}
+                  </div>
+                  ${submitted ? `<div class="text-sm mt-2 ${answers[qi] === q.answer ? 'text-green-600' : 'text-red-600'}">${answers[qi] === q.answer ? '✓ 正确' : '✗ 错误，正确答案：' + q.options[q.answer]}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+            ${!submitted ? `<button id="quiz_submit" class="mt-6 w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl">提交答案</button>` : `
+              <div class="mt-6 p-4 rounded-xl ${correctRate() >= 0.6 ? 'bg-green-50 border-2 border-green-300' : 'bg-amber-50 border-2 border-amber-300'}">
+                <div class="text-2xl font-bold ${correctRate() >= 0.6 ? 'text-green-700' : 'text-amber-700'} mb-1">得分：${score()} / ${quiz.length}</div>
+                <div class="text-sm ${correctRate() >= 0.6 ? 'text-green-600' : 'text-amber-600'}">${correctRate() >= 0.6 ? '🎉 通过！下一课已解锁' : '⚠️ 未通过（需60%），可以重做'}</div>
+                <button id="quiz_redo" class="mt-3 px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm">重新答题</button>
+              </div>
+            `}
+          </div>
+        `;
+        if (!submitted) {
+          container.querySelectorAll('.quiz-opt').forEach(el => {
+            el.onclick = () => {
+              const qi = parseInt(el.dataset.qi);
+              const oi = parseInt(el.dataset.oi);
+              answers[qi] = oi;
+              render();
+            };
+          });
+          $('quiz_submit').onclick = submitQuiz;
+        } else {
+          const redo = $('quiz_redo');
+          if (redo) redo.onclick = () => { submitted = false; answers = new Array(quiz.length).fill(-1); render(); };
+        }
+      }
+      function score() { return answers.filter((a, i) => a === quiz[i].answer).length; }
+      function correctRate() { return score() / quiz.length; }
+      async function submitQuiz() {
+        if (answers.some(a => a < 0)) { alert('请先完成所有题目'); return; }
+        submitted = true;
+        const s = score();
+        if (state.user) {
+          try {
+            await api.post('/api/lesson-quiz/submit', {
+              course_id: course.id, lesson_id: lesson.id, score: s, total: quiz.length
+            });
+          } catch (e) {}
+        }
+        render();
+      }
+      render();
     }
 
     function renderVocabulary(container, course, lesson) {
@@ -599,14 +1002,67 @@
       const dialogues = lesson.dialogue || [];
       let index = 0;
       let score = 0;
+      const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+      const langKey = course.language === 'en' ? 'en' : course.language === 'ja' ? 'ja' : 'ko';
 
-      function playAudio(text, lang) {
+      function playAudio(text) {
         if (!window.speechSynthesis) return;
         const utter = new SpeechSynthesisUtterance(text);
-        const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
-        utter.lang = langMap[lang] || 'en-US';
+        utter.lang = langMap[course.language] || 'en-US';
         utter.rate = 0.9;
         window.speechSynthesis.speak(utter);
+      }
+
+      function speakAndScore(targetText) {
+        return new Promise((resolve) => {
+          const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SR) {
+            // 浏览器不支持则用随机模拟
+            const randScore = Math.floor(Math.random() * 15) + 5;
+            resolve({ score: randScore, transcript: '(浏览器不支持语音识别)', accuracy: randScore / 20 });
+            return;
+          }
+          const rec = new SR();
+          rec.lang = langMap[course.language] || 'en-US';
+          rec.interimResults = false;
+          rec.maxAlternatives = 1;
+          let resolved = false;
+          rec.onresult = (e) => {
+            if (resolved) return; resolved = true;
+            const transcript = e.results[0][0].transcript.trim();
+            // 简单匹配评分：计算字符相似度
+            const norm = (s) => s.toLowerCase().replace(/[.,!?;:'"。，！？；：]/g, '').replace(/\s+/g, ' ').trim();
+            const target = norm(targetText);
+            const heard = norm(transcript);
+            // Levenshtein 相似度
+            const dist = levenshtein(target, heard);
+            const maxLen = Math.max(target.length, heard.length, 1);
+            const accuracy = Math.max(0, 1 - dist / maxLen);
+            // 流利度：基于命中率 + 长度比例
+            const lengthRatio = heard.length / Math.max(target.length, 1);
+            const fluency = Math.min(1, lengthRatio) * 0.7 + accuracy * 0.3;
+            // 完整度：是否包含核心关键词
+            const targetWords = target.split(/\s+/).filter(w => w.length > 1);
+            const matched = targetWords.filter(w => heard.includes(w)).length;
+            const completeness = targetWords.length ? matched / targetWords.length : 0;
+            const final = Math.round((accuracy * 0.5 + fluency * 0.3 + completeness * 0.2) * 20);
+            resolve({ score: Math.max(1, final), transcript, accuracy, fluency, completeness });
+          };
+          rec.onerror = (e) => {
+            if (resolved) return; resolved = true;
+            resolve({ score: 8, transcript: '(识别失败: ' + e.error + ')', accuracy: 0.4 });
+          };
+          rec.onend = () => {
+            if (!resolved) { resolved = true; resolve({ score: 5, transcript: '(未检测到语音)', accuracy: 0.25 }); }
+          };
+          try { rec.start(); } catch (e) {
+            if (!resolved) { resolved = true; resolve({ score: 8, transcript: '(启动失败)', accuracy: 0.4 }); }
+          }
+          // 10秒超时
+          setTimeout(() => {
+            if (!resolved) { resolved = true; try { rec.stop(); } catch(e){}; resolve({ score: 5, transcript: '(超时)', accuracy: 0.25 }); }
+          }, 10000);
+        });
       }
 
       function showDialogue() {
@@ -622,36 +1078,81 @@
           return;
         }
         const d = dialogues[index];
+        const target = d[langKey] || d.zh;
         container.innerHTML = `
           <div class="fade-in text-center py-6">
             <div class="text-sm text-slate-500 mb-4">进度 ${index + 1} / ${dialogues.length}</div>
             <div class="bg-indigo-50 rounded-2xl p-8 mb-6">
-              <div class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">${d.en || d.ja || d.ko || d.zh}</div>
+              <div class="text-3xl md:text-4xl font-bold text-slate-900 mb-3">${target}</div>
               <div class="text-lg text-slate-600">${d.zh || ''}</div>
             </div>
-            <button id="play_btn" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700 mb-4">
-              🔊 播放示范发音
-            </button>
-            <div class="text-sm text-slate-500 mb-3">点击下方按钮，跟读并评分</div>
+            <div class="flex gap-2 justify-center mb-4 flex-wrap">
+              <button id="play_btn" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-700">🔊 示范发音</button>
+              <button id="slow_btn" class="px-5 py-2.5 bg-white border border-indigo-200 text-indigo-600 rounded-xl font-medium">🐢 慢速</button>
+            </div>
+            <div class="text-sm text-slate-500 mb-3">点击麦克风跟读，系统将基于发音准确度/流利度/完整度综合评分</div>
             <button id="speak_btn" class="px-8 py-4 bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-2xl font-bold text-lg hover:opacity-90 inline-flex items-center gap-3">
               <span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span>
               开始跟读
             </button>
-            <div id="speak_result" class="mt-6 text-lg font-bold"></div>
+            <div id="speak_result" class="mt-6"></div>
           </div>
         `;
-        $('play_btn').onclick = () => playAudio(d.en || d.ja || d.ko || d.zh, course.language);
-        $('speak_btn').onclick = () => {
-          const randScore = Math.floor(Math.random() * 15) + 5;
-          score += randScore;
-          const result = $('speak_result');
-          const emoji = randScore >= 15 ? '🌟' : randScore >= 10 ? '👍' : '💪';
-          const msg = randScore >= 15 ? '发音很棒！' : randScore >= 10 ? '不错哦！' : '再试一次更好！';
-          result.innerHTML = `<div class="text-center"><div class="text-4xl mb-2">${emoji}</div><div class="text-2xl text-indigo-600">${msg} 得分：${randScore}</div></div>`;
-          setTimeout(() => { index++; showDialogue(); }, 2000);
+        $('play_btn').onclick = () => playAudio(target);
+        $('slow_btn').onclick = () => {
+          if (!window.speechSynthesis) return;
+          const u = new SpeechSynthesisUtterance(target);
+          u.lang = langMap[course.language] || 'en-US';
+          u.rate = 0.55;
+          window.speechSynthesis.speak(u);
+        };
+        $('speak_btn').onclick = async () => {
+          const btn = $('speak_btn');
+          btn.disabled = true;
+          btn.innerHTML = '<span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span> 正在聆听...';
+          const result = await speakAndScore(target);
+          score += result.score;
+          const el = $('speak_result');
+          const accuracy = Math.round((result.accuracy || 0) * 100);
+          const fluency = Math.round((result.fluency || 0) * 100);
+          const completeness = Math.round((result.completeness || 0) * 100);
+          const emoji = result.score >= 16 ? '🌟' : result.score >= 12 ? '👍' : result.score >= 8 ? '💪' : '🔁';
+          const msg = result.score >= 16 ? '发音很棒！' : result.score >= 12 ? '不错哦！' : result.score >= 8 ? '再练练更好！' : '需要复习';
+          el.innerHTML = `
+            <div class="bg-white border-2 border-indigo-200 rounded-2xl p-4 max-w-md mx-auto">
+              <div class="text-3xl mb-2">${emoji}</div>
+              <div class="text-xl font-bold text-indigo-600 mb-3">${msg} 得分：${result.score}/20</div>
+              <div class="grid grid-cols-3 gap-2 text-xs">
+                <div class="bg-indigo-50 rounded p-2"><div class="text-slate-500">准确度</div><div class="font-bold text-indigo-700">${accuracy}%</div></div>
+                <div class="bg-pink-50 rounded p-2"><div class="text-slate-500">流利度</div><div class="font-bold text-pink-700">${fluency}%</div></div>
+                <div class="bg-emerald-50 rounded p-2"><div class="text-slate-500">完整度</div><div class="font-bold text-emerald-700">${completeness}%</div></div>
+              </div>
+              <div class="text-xs text-slate-500 mt-2">听到：${result.transcript}</div>
+            </div>
+          `;
+          btn.disabled = false;
+          btn.innerHTML = '<span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span> 再试一次';
+          setTimeout(() => { index++; showDialogue(); }, 3000);
         };
       }
       showDialogue();
+    }
+
+    function levenshtein(a, b) {
+      const m = a.length, n = b.length;
+      if (m === 0) return n;
+      if (n === 0) return m;
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          dp[i][j] = a[i - 1] === b[j - 1]
+            ? dp[i - 1][j - 1]
+            : Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]) + 1;
+        }
+      }
+      return dp[m][n];
     }
 
     function renderListening(container, course, lesson) {
@@ -774,40 +1275,74 @@
     async function renderDashboard() {
       if (!state.user) return navigate('login');
       try {
-        const [profileRes, statsRes, recRes, progressRes] = await Promise.all([
+        const [profileRes, statsRes, recRes, progressRes, abilityRes, weakRes, planRes, certRes, remRes] = await Promise.all([
           api.get('/api/user/profile'),
           api.get('/api/stats'),
           api.get('/api/recommendations'),
-          api.get('/api/progress')
+          api.get('/api/progress'),
+          api.get('/api/ability'),
+          api.get('/api/weak-points'),
+          api.get('/api/study-plan'),
+          api.get('/api/certificates'),
+          api.get('/api/reminder')
         ]);
 
         const totalLessons = recRes.reduce((s, c) => s + c.lessons.length, 0);
         const completedCount = progressRes.filter(p => p.completed).length;
         const level = Math.floor(statsRes.totalXp / 100) + 1;
+        const studyMinutesToday = statsRes.stats.find(s => s.study_date === new Date().toISOString().slice(0, 10))?.minutes || 0;
 
         this.innerHTML = `
           <div class="mb-6">
             <h1 class="text-3xl font-bold text-slate-900 mb-2">👋 你好，${state.user.username}！</h1>
-            <p class="text-slate-600">继续你的学习旅程，每天进步一点点</p>
+            <p class="text-slate-600">继续你的学习旅程，每天进步一点点 · 今日已学 ${studyMinutesToday} 分钟</p>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             ${statCard('📊', '总经验', statsRes.totalXp, 'XP')}
             ${statCard('⏱️', '学习时长', statsRes.totalMinutes, '分钟')}
             ${statCard('🔥', '连续打卡', statsRes.streak, '天')}
             ${statCard('📚', '已完成', completedCount, '节课')}
           </div>
 
-          <div class="bg-white rounded-2xl p-6 mb-6">
-            <div class="flex items-center justify-between mb-4">
-              <h2 class="text-xl font-bold text-slate-900">📈 等级 Lv.${level}</h2>
-              <div class="text-sm text-slate-500">${statsRes.totalXp} XP</div>
+          <div class="grid md:grid-cols-3 gap-6 mb-6">
+            <div class="md:col-span-2 bg-white rounded-2xl p-6">
+              <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+                <h2 class="text-xl font-bold text-slate-900">📈 等级 Lv.${level}</h2>
+                <div class="text-sm text-slate-500">${statsRes.totalXp} XP</div>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-3">
+                <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all" style="width: ${(statsRes.totalXp % 100)}%"></div>
+              </div>
+              <div class="text-xs text-slate-500 mt-2">距离 Lv.${level + 1} 还差 ${100 - (statsRes.totalXp % 100)} XP</div>
+              ${planRes ? `<div class="mt-4 p-3 bg-indigo-50 rounded-lg text-sm text-indigo-700">📋 当前计划：${planRes.goal}（${planRes.target_weeks}周）</div>` : ''}
+              <div class="mt-4 flex items-center gap-2 flex-wrap">
+                <span class="text-xs text-slate-500">学习路径：</span>
+                <button data-path="standard" class="js-path-btn px-3 py-1.5 rounded-lg text-xs font-medium ${(profileRes.learning_path || 'standard') === 'standard' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'}">🎓 标准</button>
+                <button data-path="cram" class="js-path-btn px-3 py-1.5 rounded-lg text-xs font-medium ${profileRes.learning_path === 'cram' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'}">⚡ 快速通关</button>
+                <button data-path="deep" class="js-path-btn px-3 py-1.5 rounded-lg text-xs font-medium ${profileRes.learning_path === 'deep' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'}">🔍 精讲</button>
+              </div>
             </div>
-            <div class="w-full bg-slate-100 rounded-full h-3">
-              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all" style="width: ${(statsRes.totalXp % 100)}%"></div>
+            <div class="bg-white rounded-2xl p-5">
+              <h3 class="font-bold text-slate-900 mb-2">🎯 能力雷达</h3>
+              ${drawRadarSVG(abilityRes)}
             </div>
-            <div class="text-xs text-slate-500 mt-2">距离 Lv.${level + 1} 还差 ${100 - (statsRes.totalXp % 100)} XP</div>
           </div>
+
+          ${weakRes.weak && weakRes.weak.length > 0 ? `
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-400 rounded-xl p-4 mb-6">
+              <div class="flex items-start gap-3">
+                <div class="text-2xl">⚠️</div>
+                <div class="flex-1">
+                  <div class="font-semibold text-amber-900">薄弱点提醒</div>
+                  <div class="text-sm text-amber-800 mt-1">以下知识点正确率较低，建议复习：</div>
+                  <div class="flex flex-wrap gap-2 mt-2">
+                    ${weakRes.weak.map(w => `<span class="px-2.5 py-1 bg-white border border-amber-200 text-amber-700 rounded-full text-xs">${w}</span>`).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : ''}
 
           <h2 class="text-xl font-bold text-slate-900 mb-4">💡 为你推荐的课程</h2>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -827,8 +1362,25 @@
             }).join('') : '<div class="col-span-3 text-center py-8 bg-white rounded-xl text-slate-500">暂无推荐课程，前往课程中心选课</div>'}
           </div>
 
+          <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-2xl p-6">
+              <h3 class="font-bold text-slate-900 mb-3">🏅 我的证书</h3>
+              ${certRes.length > 0 ? `
+                <div class="space-y-2">
+                  ${certRes.slice(0, 3).map(c => `<div class="flex items-center gap-2 p-2 bg-amber-50 rounded-lg"><span class="text-xl">🎓</span><div class="text-sm font-medium text-amber-900">${c.course_title}</div></div>`).join('')}
+                </div>
+                <button onclick="navigate('certificates')" class="mt-3 text-sm text-indigo-600 hover:underline">查看全部 →</button>
+              ` : '<div class="text-sm text-slate-500">完成任意一门课程的全部课时即可获得证书</div>'}
+            </div>
+            <div class="bg-white rounded-2xl p-6">
+              <h3 class="font-bold text-slate-900 mb-3">🔔 学习提醒</h3>
+              <div class="text-sm text-slate-600 mb-3">${remRes.enabled ? `已开启 · 每日 ${remRes.time} 提醒` : '未开启'}</div>
+              <button onclick="navigate('reminders')" class="text-sm text-indigo-600 hover:underline">${remRes.enabled ? '调整设置' : '开启提醒'} →</button>
+            </div>
+          </div>
+
           <h2 class="text-xl font-bold text-slate-900 mb-4">📅 最近学习记录</h2>
-          <div class="bg-white rounded-2xl overflow-hidden">
+          <div class="bg-white rounded-2xl overflow-hidden mb-6">
             ${statsRes.stats.length > 0 ? `
               <table class="w-full text-sm">
                 <thead class="bg-slate-50">
@@ -850,6 +1402,17 @@
               </table>
             ` : '<div class="p-8 text-center text-slate-500">暂无学习记录，开始你的第一节课吧！</div>'}
           </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            ${shortcutCard('🎭', 'AI 情景对话', 'scenario', 'from-amber-100 to-orange-100')}
+            ${shortcutCard('📋', '学习计划', 'studyplan', 'from-pink-100 to-rose-100')}
+            ${shortcutCard('🏅', '我的证书', 'certificates', 'from-emerald-100 to-green-100')}
+            ${shortcutCard('📊', '学习报告', 'report', 'from-sky-100 to-blue-100')}
+            ${shortcutCard('🎥', '直播导学', 'live', 'from-red-100 to-pink-100')}
+            ${shortcutCard('🔔', '学习提醒', 'reminders', 'from-violet-100 to-purple-100')}
+            ${shortcutCard('📝', '水平测试', 'placement', 'from-yellow-100 to-amber-100')}
+            ${shortcutCard('💬', '学习社区', 'community', 'from-cyan-100 to-sky-100')}
+          </div>
         `;
         document.querySelectorAll('.js-rec-card').forEach(el => {
           el.onclick = () => {
@@ -858,6 +1421,14 @@
             navigate('lesson', { currentCourse: course, currentLesson: lesson });
           };
         });
+        document.querySelectorAll('.js-path-btn').forEach(btn => {
+          btn.onclick = async () => {
+            await api.put('/api/user/goal', { learning_path: btn.dataset.path });
+            location.reload();
+          };
+        });
+        // 启动提醒轮询
+        if (remRes.enabled) setupReminderPolling(remRes.time);
       } catch (e) {
         console.error(e);
       }
@@ -1007,6 +1578,961 @@
       } catch (e) {
         console.error(e);
       }
+    }
+
+    // ===================== 入学水平测试 =====================
+    async function renderPlacement() {
+      if (!state.user) return navigate('login');
+      let targetLang = state.user.target_language || 'en';
+      const PLACEMENT_QUESTIONS = {
+        en: [
+          { q: '"Hello" 的中文意思是？', options: ['你好', '再见', '谢谢', '请'], a: 0 },
+          { q: '下列哪个是数字 "three"？', options: ['3', '5', '7', '2'], a: 0 },
+          { q: '"How are you?" 是问什么？', options: ['你好吗？', '你是谁？', '你去哪？', '几点了？'], a: 0 },
+          { q: '选正确的：I ___ a student.', options: ['am', 'is', 'are', 'be'], a: 0 },
+          { q: '"thank you" 的中文？', options: ['谢谢', '对不起', '请', '再见'], a: 0 },
+          { q: '现在进行时：I ___ a book now.', options: ['am reading', 'read', 'reads', 'reading'], a: 0 },
+          { q: '过去式：Yesterday I ___ to the park.', options: ['went', 'go', 'goes', 'going'], a: 0 },
+          { q: '完成时：I ___ already eaten.', options: ['have', 'has', 'had', 'having'], a: 0 }
+        ],
+        ja: [
+          { q: '"ありがとう" 的中文意思是？', options: ['谢谢', '你好', '对不起', '再见'], a: 0 },
+          { q: '"こんにちは" 是什么时候说的？', options: ['白天你好', '晚上好', '早安', '再见'], a: 0 },
+          { q: '"私" 的读音？', options: ['わたし', 'あなた', 'かれ', 'かのじょ'], a: 0 },
+          { q: '"猫" 的日语？', options: ['ねこ', 'いぬ', 'うさぎ', 'とり'], a: 0 },
+          { q: '"1" 用日语说？', options: ['いち', 'に', 'さん', 'よん'], a: 0 },
+          { q: '"食べます" 是什么动词？', options: ['吃', '喝', '走', '看'], a: 0 },
+          { q: '"行きました" 是什么时态？', options: ['过去式', '现在式', '未来式', '命令形'], a: 0 },
+          { q: '"もしもし" 是什么时候说？', options: ['打电话', '见面', '吃饭', '睡觉'], a: 0 }
+        ],
+        ko: [
+          { q: '"안녕하세요" 的中文？', options: ['你好', '谢谢', '再见', '对不起'], a: 0 },
+          { q: '"감사합니다" 的中文？', options: ['谢谢', '你好', '对不起', '请'], a: 0 },
+          { q: '"저" 的中文？', options: ['我', '你', '他', '她'], a: 0 },
+          { q: '"1" 用韩语说？', options: ['하나/일', '둘/이', '셋/삼', '넷/사'], a: 0 },
+          { q: '"먹다" 是什么动词？', options: ['吃', '喝', '睡', '走'], a: 0 },
+          { q: '"학생" 的中文？', options: ['学生', '老师', '医生', '朋友'], a: 0 },
+          { q: '"읽었어요" 是什么时态？', options: ['过去式', '现在式', '未来式', '命令形'], a: 0 },
+          { q: '"주세요" 的中文？', options: ['请给我', '谢谢', '对不起', '再见'], a: 0 }
+        ]
+      };
+      let lang = targetLang;
+      let answers = new Array(8).fill(-1);
+
+      const self = this;
+      function renderIntro() {
+        self.innerHTML = `
+          <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
+            <div class="text-center mb-6">
+              <div class="text-6xl mb-3">📝</div>
+              <h1 class="text-3xl font-bold text-slate-900 mb-2">入学水平测试</h1>
+              <p class="text-slate-600">通过 8 道快速题，AI 将为你推荐最适合的起始级别</p>
+            </div>
+            <div class="bg-indigo-50 rounded-xl p-5 mb-6">
+              <div class="font-medium text-indigo-900 mb-2">📌 测试说明</div>
+              <ul class="text-sm text-indigo-800 space-y-1">
+                <li>• 包含词汇、语法、听力基础题</li>
+                <li>• 答对越多，推荐级别越高</li>
+                <li>• 完成后可随时调整</li>
+              </ul>
+            </div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-slate-700 mb-2">选择测试语种</label>
+              <div class="flex gap-2">
+                <button data-lang="en" class="lang-pick px-4 py-2 rounded-lg ${lang==='en'?'bg-indigo-600 text-white':'bg-white border border-slate-200'}">🇬🇧 英语</button>
+                <button data-lang="ja" class="lang-pick px-4 py-2 rounded-lg ${lang==='ja'?'bg-indigo-600 text-white':'bg-white border border-slate-200'}">🇯🇵 日语</button>
+                <button data-lang="ko" class="lang-pick px-4 py-2 rounded-lg ${lang==='ko'?'bg-indigo-600 text-white':'bg-white border border-slate-200'}">🇰🇷 韩语</button>
+              </div>
+            </div>
+            <button id="start_test" class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl">开始测试 →</button>
+            <button id="skip_test" class="w-full mt-2 py-2 text-slate-500 text-sm">跳过，先随便看看</button>
+          </div>
+        `;
+        document.querySelectorAll('.lang-pick').forEach(b => b.onclick = () => { lang = b.dataset.lang; renderIntro(); });
+        $('start_test').onclick = () => { answers = new Array(8).fill(-1); renderQuiz(); };
+        $('skip_test').onclick = () => navigate('dashboard');
+      }
+
+      function renderQuiz() {
+        const questions = PLACEMENT_QUESTIONS[lang] || PLACEMENT_QUESTIONS.en;
+        self.innerHTML = `
+          <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
+            <div class="mb-4 text-sm text-slate-500">进度：${answers.filter(a=>a>=0).length} / ${questions.length}</div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mb-6">
+              <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${(answers.filter(a=>a>=0).length/questions.length)*100}%"></div>
+            </div>
+            <div class="space-y-5">
+              ${questions.map((q, qi) => `
+                <div class="bg-slate-50 rounded-xl p-4">
+                  <div class="font-medium text-slate-900 mb-3">${qi+1}. ${q.q}</div>
+                  <div class="space-y-2">
+                    ${q.options.map((o, oi) => `
+                      <button data-qi="${qi}" data-oi="${oi}" class="pq-opt w-full p-3 bg-white rounded-lg text-left border-2 ${answers[qi]===oi?'border-indigo-500':'border-transparent hover:border-indigo-300'}">${String.fromCharCode(65+oi)}. ${o}</button>
+                    `).join('')}
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <button id="submit_placement" class="mt-6 w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl">提交测试</button>
+          </div>
+        `;
+        document.querySelectorAll('.pq-opt').forEach(b => {
+          b.onclick = () => {
+            const qi = parseInt(b.dataset.qi), oi = parseInt(b.dataset.oi);
+            answers[qi] = oi;
+            renderQuiz();
+          };
+        });
+        $('submit_placement').onclick = async () => {
+          if (answers.some(a => a < 0)) { alert('请先完成所有题目'); return; }
+          const questions = PLACEMENT_QUESTIONS[lang] || PLACEMENT_QUESTIONS.en;
+          const score = answers.filter((a, i) => a === questions[i].a).length;
+          let rec;
+          if (score <= 2) rec = 'beginner';
+          else if (score <= 5) rec = 'intermediate';
+          else rec = 'advanced';
+          await api.post('/api/placement/submit', { language: lang, score, recommended_level: rec, answers });
+          renderResult(score, rec, questions.length);
+        };
+      }
+
+      function renderResult(score, rec, total) {
+        const LEVEL_NAMES = { beginner: '入门级', intermediate: '中级', advanced: '高级' };
+        self.innerHTML = `
+          <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6 text-center">
+            <div class="text-6xl mb-3">🎉</div>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">测试完成！</h1>
+            <div class="text-xl text-slate-700 mb-6">得分：<span class="font-bold text-indigo-600">${score} / ${total}</span></div>
+            <div class="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-6 mb-6">
+              <div class="text-sm text-slate-600 mb-1">推荐起始级别</div>
+              <div class="text-4xl font-bold text-indigo-600 mb-2">${LEVEL_NAMES[rec]}</div>
+              <div class="text-sm text-slate-500">系统将根据此级别为你推荐课程</div>
+            </div>
+            <div class="flex gap-3">
+              <button onclick="navigate('courses')" class="flex-1 py-3 bg-indigo-600 text-white font-semibold rounded-xl">📚 查看推荐课程</button>
+              <button onclick="navigate('dashboard')" class="flex-1 py-3 bg-white border border-indigo-200 text-indigo-600 font-semibold rounded-xl">🏠 返回首页</button>
+            </div>
+          </div>
+        `;
+      }
+
+      renderIntro();
+    }
+
+    // ===================== 个性化学习计划 =====================
+    async function renderStudyPlan() {
+      if (!state.user) return navigate('login');
+      let plan = null;
+      try { plan = await api.get('/api/study-plan'); } catch(e) {}
+      const GOALS = [
+        { id: 'travel_3m', label: '🛫 3个月出国旅游', weeks: 12, weekly: 4, desc: '日常对话 + 出行场景' },
+        { id: 'business_6m', label: '💼 6个月职场能用', weeks: 24, weekly: 3, desc: '商务表达 + 邮件会议' },
+        { id: 'exam_jlpt_n3', label: '🎯 JLPT N3 冲刺', weeks: 16, weekly: 5, desc: '语法 + 阅读 + 听力' },
+        { id: 'exam_topik_2', label: '🎯 TOPIK II-2 冲刺', weeks: 16, weekly: 5, desc: '中高级综合' },
+        { id: 'daily_3m', label: '🌱 3个月日常交流', weeks: 12, weekly: 3, desc: '基础会话 + 词汇积累' }
+      ];
+      const PATH_MODES = [
+        { id: 'standard', label: '🎓 标准模式', desc: '循序渐进，每日1课' },
+        { id: 'cram', label: '⚡ 快速通关', desc: '快速解锁，每日2-3课' },
+        { id: 'deep', label: '🔍 精讲模式', desc: '深度学习，每周2课' }
+      ];
+      const self = this;
+      let selectedGoal = GOALS[0].id;
+      let selectedPath = 'standard';
+
+      function showCreator() {
+        self.innerHTML = `
+          <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
+            <button class="text-sm text-indigo-600 hover:underline mb-3" onclick="navigate('dashboard')">← 返回</button>
+            <h1 class="text-2xl font-bold text-slate-900 mb-1">📋 个性化学习计划</h1>
+            <p class="text-slate-600 mb-6">告诉我们你的目标，AI 将为你生成专属学习路径</p>
+            <div class="mb-6">
+              <h3 class="font-bold text-slate-900 mb-3">🎯 学习目标</h3>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                ${GOALS.map(g => `
+                  <label class="goal-card cursor-pointer p-4 rounded-xl border-2 ${selectedGoal === g.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-indigo-300'}">
+                    <div class="font-semibold text-slate-900">${g.label}</div>
+                    <div class="text-sm text-slate-500 mt-1">${g.desc} · ${g.weeks}周 · ${g.weekly}课/周</div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+            <div class="mb-6">
+              <h3 class="font-bold text-slate-900 mb-3">⚙️ 学习节奏</h3>
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                ${PATH_MODES.map(p => `
+                  <label class="path-card cursor-pointer p-4 rounded-xl border-2 ${selectedPath === p.id ? 'border-indigo-500 bg-indigo-50' : 'border-slate-200 hover:border-indigo-300'}">
+                    <div class="font-semibold text-slate-900">${p.label}</div>
+                    <div class="text-sm text-slate-500 mt-1">${p.desc}</div>
+                  </label>
+                `).join('')}
+              </div>
+            </div>
+            <button id="gen_plan" class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl">生成我的学习计划</button>
+          </div>
+        `;
+        document.querySelectorAll('.goal-card').forEach((c, i) => {
+          c.onclick = () => { selectedGoal = GOALS[i].id; showCreator(); };
+        });
+        document.querySelectorAll('.path-card').forEach((c, i) => {
+          c.onclick = () => { selectedPath = PATH_MODES[i].id; showCreator(); };
+        });
+        $('gen_plan').onclick = async () => {
+          const goal = GOALS.find(g => g.id === selectedGoal);
+          const schedule = [];
+          for (let w = 0; w < goal.weeks; w++) {
+            for (let l = 0; l < goal.weekly; l++) {
+              schedule.push({ week: w + 1, lesson: l + 1, status: 'pending' });
+            }
+          }
+          await api.post('/api/study-plan', {
+            goal: goal.label, target_weeks: goal.weeks, weekly_lessons: goal.weekly, schedule
+          });
+          await api.put('/api/user/goal', { study_goal: goal.id, learning_path: selectedPath });
+          plan = await api.get('/api/study-plan');
+          showPlan();
+        };
+      }
+
+      function showPlan() {
+        if (!plan) return showCreator();
+        const total = plan.target_weeks * plan.weekly_lessons;
+        const done = (plan.schedule || []).filter(s => s.status === 'done').length;
+        const pct = Math.round(done / total * 100);
+        self.innerHTML = `
+          <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
+            <button class="text-sm text-indigo-600 hover:underline mb-3" onclick="navigate('dashboard')">← 返回</button>
+            <h1 class="text-2xl font-bold text-slate-900 mb-1">📋 ${plan.goal}</h1>
+            <p class="text-slate-600 mb-6">${plan.target_weeks}周计划 · 每周${plan.weekly_lessons}课 · 当前进度 ${done}/${total} (${pct}%)</p>
+            <div class="w-full bg-slate-100 rounded-full h-3 mb-6">
+              <div class="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all" style="width: ${pct}%"></div>
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+              ${statCard('🎯', '总课时', total, '课')}
+              ${statCard('✅', '已完成', done, '课')}
+              ${statCard('📅', '剩余课时', Math.max(0, (total - done)), '课')}
+              ${statCard('⏱️', '预计完成', plan.target_weeks + '周', '')}
+            </div>
+            <h3 class="font-bold text-slate-900 mb-3">📅 周计划预览</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              ${Array.from({length: Math.min(plan.target_weeks, 12)}).map((_, i) => `
+                <div class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl p-3 text-center">
+                  <div class="text-xs text-slate-500">第 ${i+1} 周</div>
+                  <div class="text-2xl font-bold text-indigo-600">${plan.weekly_lessons}</div>
+                  <div class="text-xs text-slate-500">课时</div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="mt-8 flex gap-3">
+              <button onclick="navigate('courses')" class="flex-1 py-3 bg-indigo-600 text-white font-semibold rounded-xl">开始学习</button>
+              <button id="replan" class="px-6 py-3 bg-white border border-indigo-200 text-indigo-600 rounded-xl">重新规划</button>
+            </div>
+          </div>
+        `;
+        const rb = $('replan');
+        if (rb) rb.onclick = () => { plan = null; showCreator(); };
+      }
+
+      if (plan) showPlan(); else showCreator();
+    }
+
+    // ===================== 证书 =====================
+    async function renderCertificates() {
+      if (!state.user) return navigate('login');
+      try {
+        const list = await api.get('/api/certificates');
+        this.innerHTML = `
+          <div class="mb-6">
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">🏅 我的证书</h1>
+            <p class="text-slate-600">完成全部课时并通过测验后即可获得证书</p>
+          </div>
+          ${list.length > 0 ? `
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              ${list.map(c => `
+                <div class="bg-gradient-to-br from-amber-50 to-yellow-100 border-2 border-amber-300 rounded-2xl p-6 shadow-lg">
+                  <div class="text-center mb-4">
+                    <div class="text-5xl mb-2">🎓</div>
+                    <div class="text-xs text-amber-700 uppercase tracking-wider">Certificate of Completion</div>
+                    <div class="text-2xl font-bold text-amber-900 mt-1">${c.course_title}</div>
+                    <div class="text-sm text-amber-700 mt-2">授予：${c.username}</div>
+                    <div class="text-sm text-amber-700">签发日期：${c.issue_date}</div>
+                  </div>
+                  <canvas data-cert-id="${c.id}" data-name="${c.username}" data-course="${c.course_title}" data-date="${c.issue_date}" width="800" height="500" class="w-full rounded-xl border border-amber-200 bg-white"></canvas>
+                  <button class="js-download-cert mt-3 w-full py-2.5 bg-amber-600 text-white font-semibold rounded-lg" data-cert-id="${c.id}">📥 下载证书</button>
+                </div>
+              `).join('')}
+            </div>
+          ` : `
+            <div class="bg-white rounded-2xl p-12 text-center">
+              <div class="text-6xl mb-4">📜</div>
+              <h3 class="text-xl font-bold text-slate-900 mb-2">暂无证书</h3>
+              <p class="text-slate-600 mb-6">完成任意一门课程的全部课时后即可申请结课证书</p>
+              <button onclick="navigate('courses')" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">前往学习</button>
+            </div>
+          `}
+        `;
+        document.querySelectorAll('canvas[data-cert-id]').forEach(cv => {
+          drawCertificate(cv, cv.dataset.name, cv.dataset.course, cv.dataset.date);
+        });
+        document.querySelectorAll('.js-download-cert').forEach(btn => {
+          btn.onclick = () => {
+            const cv = document.querySelector('canvas[data-cert-id="' + btn.dataset.certId + '"]');
+            if (cv) {
+              const link = document.createElement('a');
+              link.download = '证书_' + (cv.dataset.course || '').slice(0, 10) + '_' + cv.dataset.date + '.png';
+              link.href = cv.toDataURL('image/png');
+              link.click();
+            }
+          };
+        });
+      } catch (e) { console.error(e); }
+    }
+
+    function drawCertificate(canvas, name, course, date) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#fef3c7');
+      bg.addColorStop(0.5, '#fde68a');
+      bg.addColorStop(1, '#fcd34d');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+      ctx.strokeStyle = '#92400e';
+      ctx.lineWidth = 8;
+      ctx.strokeRect(20, 20, W - 40, H - 40);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(35, 35, W - 70, H - 70);
+      ctx.fillStyle = '#78350f';
+      ctx.font = 'bold 36px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('🎓 结课证书', W/2, 100);
+      ctx.font = 'italic 20px serif';
+      ctx.fillText('Certificate of Completion', W/2, 135);
+      ctx.font = '18px sans-serif';
+      ctx.fillStyle = '#451a03';
+      ctx.fillText('兹证明', W/2, 200);
+      ctx.font = 'bold 42px serif';
+      ctx.fillStyle = '#7c2d12';
+      ctx.fillText(name, W/2, 260);
+      ctx.strokeStyle = '#92400e';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(W/2 - 200, 280); ctx.lineTo(W/2 + 200, 280);
+      ctx.stroke();
+      ctx.font = '18px sans-serif';
+      ctx.fillStyle = '#451a03';
+      ctx.fillText('已圆满完成课程', W/2, 330);
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillStyle = '#7c2d12';
+      ctx.fillText(course, W/2, 370);
+      ctx.font = '18px sans-serif';
+      ctx.fillStyle = '#451a03';
+      ctx.fillText('签发日期：' + date, W/2, 430);
+      ctx.fillStyle = '#dc2626';
+      ctx.beginPath();
+      ctx.arc(W - 130, H - 100, 50, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('LinguaEdu', W - 130, H - 95);
+      ctx.font = '12px sans-serif';
+      ctx.fillText('CERTIFIED', W - 130, H - 75);
+    }
+
+    // ===================== 学习报告 =====================
+    async function renderReport() {
+      if (!state.user) return navigate('login');
+      try {
+        const r = await api.get('/api/report/monthly');
+        this.innerHTML = `
+          <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h1 class="text-3xl font-bold text-slate-900 mb-2">📊 学习报告</h1>
+              <p class="text-slate-600">月度学习数据综合分析</p>
+            </div>
+            <button id="print_report" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">🖨 打印/导出</button>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            ${statCard('⭐', '总经验', r.totalXp, 'XP')}
+            ${statCard('⏱️', '总时长', r.totalMinutes, '分钟')}
+            ${statCard('📚', '完成课时', r.completedLessons, '节')}
+            ${statCard('🏆', '成就数', r.achievements.length, '个')}
+          </div>
+
+          <div class="grid md:grid-cols-2 gap-6 mb-6">
+            <div class="bg-white rounded-2xl p-6">
+              <h3 class="font-bold text-slate-900 mb-4">📈 近7日学习时长</h3>
+              <div class="flex items-end gap-1 h-32">
+                ${r.stats.slice(0, 7).reverse().map(s => {
+                  const max = Math.max(...r.stats.map(x => x.minutes || 0), 10);
+                  const h = Math.max(4, Math.round((s.minutes || 0) / max * 100));
+                  return '<div class="flex-1 flex flex-col items-center"><div class="w-full bg-gradient-to-t from-indigo-500 to-purple-400 rounded-t" style="height: ' + h + '%"></div><div class="text-[10px] text-slate-500 mt-1">' + (s.study_date || '').slice(5) + '</div></div>';
+                }).join('')}
+              </div>
+            </div>
+            <div class="bg-white rounded-2xl p-6">
+              <h3 class="font-bold text-slate-900 mb-4">🎯 能力雷达</h3>
+              ${drawRadarSVG(r.ability)}
+            </div>
+          </div>
+
+          <div class="bg-white rounded-2xl p-6 mb-6">
+            <h3 class="font-bold text-slate-900 mb-4">📅 每日学习记录</h3>
+            ${r.stats.length > 0 ? `
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50">
+                  <tr>
+                    <th class="text-left p-3 text-slate-600">日期</th>
+                    <th class="text-left p-3 text-slate-600">学习时长</th>
+                    <th class="text-left p-3 text-slate-600">获得XP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${r.stats.slice(0, 14).map(s => `
+                    <tr class="border-t border-slate-100">
+                      <td class="p-3">${s.study_date}</td>
+                      <td class="p-3">${s.minutes} 分钟</td>
+                      <td class="p-3 text-indigo-600 font-medium">+${s.xp} XP</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            ` : '<div class="text-slate-500 text-center py-8">暂无学习记录</div>'}
+          </div>
+
+          <div class="text-xs text-slate-400 text-center">报告生成于 ${new Date(r.generated_at).toLocaleString('zh-CN')}</div>
+        `;
+        $('print_report').onclick = () => window.print();
+      } catch (e) { console.error(e); }
+    }
+
+    function drawRadarSVG(ability) {
+      if (!ability) return '<div class="text-slate-500 text-center py-8">暂无能力数据</div>';
+      const dims = [
+        { key: 'listening', label: '听力' },
+        { key: 'speaking', label: '口语' },
+        { key: 'reading', label: '阅读' },
+        { key: 'writing', label: '写作' },
+        { key: 'vocabulary', label: '词汇' }
+      ];
+      const cx = 110, cy = 110, r = 80;
+      const points = dims.map((d, i) => {
+        const angle = (Math.PI * 2 * i) / dims.length - Math.PI / 2;
+        const v = (ability[d.key] || 50) / 100;
+        return { x: cx + Math.cos(angle) * r * v, y: cy + Math.sin(angle) * r * v, label: d.label, angle, v };
+      });
+      const polyPts = points.map(p => p.x + ',' + p.y).join(' ');
+      const gridCircles = [0.25, 0.5, 0.75, 1].map(s => {
+        return '<circle cx="' + cx + '" cy="' + cy + '" r="' + (r * s) + '" fill="none" stroke="#e2e8f0" stroke-dasharray="3,3" />';
+      }).join('');
+      const gridLines = dims.map((_, i) => {
+        const angle = (Math.PI * 2 * i) / dims.length - Math.PI / 2;
+        const x = cx + Math.cos(angle) * r;
+        const y = cy + Math.sin(angle) * r;
+        return '<line x1="' + cx + '" y1="' + cy + '" x2="' + x + '" y2="' + y + '" stroke="#cbd5e1" />';
+      }).join('');
+      const labels = points.map(p => {
+        const lx = cx + Math.cos(p.angle) * (r + 20);
+        const ly = cy + Math.sin(p.angle) * (r + 20);
+        return '<text x="' + lx + '" y="' + ly + '" text-anchor="middle" dominant-baseline="middle" font-size="12" font-weight="600" fill="#475569">' + p.label + '</text>';
+      }).join('');
+      return '<svg viewBox="0 0 220 220" class="w-full max-w-[240px] mx-auto">' + gridCircles + gridLines +
+        '<polygon points="' + polyPts + '" fill="rgba(99,102,241,0.3)" stroke="#6366f1" stroke-width="2" />' +
+        points.map(p => '<circle cx="' + p.x + '" cy="' + p.y + '" r="3" fill="#6366f1" />').join('') + labels +
+        '</svg>' +
+        '<div class="grid grid-cols-5 gap-1 mt-2 text-center text-xs">' +
+        dims.map(d => '<div><div class="text-slate-500">' + d.label + '</div><div class="font-bold text-indigo-600">' + (ability[d.key] || 50) + '</div></div>').join('') +
+        '</div>';
+    }
+
+    // ===================== AI 情景对话 =====================
+    async function renderScenarioList() {
+      if (!state.user) return navigate('login');
+      const SCENARIOS = {
+        cafe: { name: '☕ 咖啡馆点单', desc: '学会在咖啡馆点单、询问尺寸、外带堂食', color: 'from-amber-100 to-orange-100' },
+        airport: { name: '✈️ 机场值机', desc: '登机流程、托运行李、确认登机口', color: 'from-sky-100 to-blue-100' },
+        office: { name: '💼 办公室日常', desc: '问候同事、会议安排、邮件沟通', color: 'from-slate-100 to-indigo-100' }
+      };
+      this.innerHTML = `
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-slate-900 mb-2">🎭 AI 情景对话</h1>
+          <p class="text-slate-600">在真实场景中练习口语，对话有英/日/韩三语字幕</p>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          ${Object.entries(SCENARIOS).map(([id, s]) => `
+            <div data-scenario="${id}" class="cursor-pointer bg-gradient-to-br ${s.color} rounded-2xl p-6 card-hover border-2 border-white js-scenario-card">
+              <div class="text-6xl mb-3 text-center">${s.name.split(' ')[0]}</div>
+              <h3 class="font-bold text-lg text-slate-900 text-center mb-2">${s.name.split(' ').slice(1).join(' ')}</h3>
+              <p class="text-sm text-slate-700 text-center">${s.desc}</p>
+              <button class="mt-4 w-full py-2.5 bg-white text-slate-800 font-medium rounded-lg">开始对话 →</button>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      document.querySelectorAll('.js-scenario-card').forEach(el => {
+        el.onclick = () => navigate('scenario_practice', { scenarioId: el.dataset.scenario });
+      });
+    }
+
+    async function renderScenarioPractice() {
+      if (!state.user) return navigate('login');
+      const sid = state.scenarioId || 'cafe';
+      const SCENARIOS = {
+        cafe: {
+          name: '☕ 咖啡馆点单', bg: 'from-amber-100 to-orange-100',
+          steps: [
+            { speaker: '店员', en: 'Welcome! What can I get for you today?', ja: 'いらっしゃいませ！何になさいますか？', ko: '어서오세요! 주문하시겠어요?', zh: '欢迎光临！请问需要点什么？' },
+            { speaker: '我', en: 'I would like a cappuccino, please.', ja: 'カプチーノをください。', ko: '카푸치노 주세요.', zh: '我想要一杯卡布奇诺。' },
+            { speaker: '店员', en: 'Sure. For here or to go?', ja: '店内でお召し上がりですか？', ko: '매장에서 드릴까요?', zh: '好的，堂食还是外带？' },
+            { speaker: '我', en: 'For here, thank you.', ja: 'ここで食べます、ありがとう。', ko: '매장에서요, 감사합니다.', zh: '堂食，谢谢。' },
+            { speaker: '店员', en: 'Anything else?', ja: '他にご注文はありますか？', ko: '더 필요하신 거 있으세요?', zh: '还需要别的吗？' },
+            { speaker: '我', en: 'A chocolate croissant, please.', ja: 'チョコクロワッサンもください。', ko: '초콜릿 크루아상도 주세요.', zh: '再来一个巧克力可颂。' }
+          ]
+        },
+        airport: {
+          name: '✈️ 机场值机', bg: 'from-sky-100 to-blue-100',
+          steps: [
+            { speaker: '职员', en: 'Good morning. May I see your passport and ticket?', ja: 'おはようございます。パスポートとチケットを拝見します。', ko: '좋은 아침입니다. 여권과 티켓을 보여주실 수 있나요?', zh: '早上好，请出示您的护照和机票。' },
+            { speaker: '我', en: 'Here you are.', ja: 'はい、どうぞ。', ko: '여기 있습니다.', zh: '给您。' },
+            { speaker: '职员', en: 'How many bags will you check in?', ja: 'お預けになる荷物はいくつですか？', ko: '위탁하실 짐은 몇 개인가요?', zh: '您要托运几件行李？' },
+            { speaker: '我', en: 'One suitcase, please.', ja: 'スーツケース1つをお願いします。', ko: '캐리어 1개요.', zh: '一件行李箱。' },
+            { speaker: '职员', en: 'Your gate is B12. Boarding starts at 10:30.', ja: '搭乗口はB12、搭乗開始は10時30分です。', ko: '탑승구는 B12, 탑승 시작은 10시 30분입니다.', zh: '您的登机口是B12，10:30开始登机。' },
+            { speaker: '我', en: 'Thank you very much!', ja: 'どうもありがとうございました！', ko: '정말 감사합니다!', zh: '非常感谢！' }
+          ]
+        },
+        office: {
+          name: '💼 办公室日常', bg: 'from-slate-100 to-indigo-100',
+          steps: [
+            { speaker: '同事', en: 'Good morning! How was your weekend?', ja: 'おはよう！週末はどうだった？', ko: '좋은 아침! 주말은 어땠어?', zh: '早上好！周末过得怎么样？' },
+            { speaker: '我', en: 'Pretty good, I recharged a lot.', ja: '元気だったよ、ゆっくり休めた。', ko: '꽤 좋았어, 푹 쉬었거든.', zh: '挺好的，我好好休息了一下。' },
+            { speaker: '同事', en: 'Are you ready for the meeting at 10?', ja: '10時の会議の準備できた？', ko: '10시 회의 준비됐어?', zh: '10点的会议准备好了吗？' },
+            { speaker: '我', en: 'Almost done. I will send the slides in a minute.', ja: 'あと少し。すぐスライド送るね。', ko: '거의 다 됐어. 슬라이드 바로 보낼게.', zh: '差不多了，我马上发幻灯片。' },
+            { speaker: '同事', en: 'Great, see you in the meeting room.', ja: '了解、会議室で会おう。', ko: '좋아, 회의실에서 보자.', zh: '好的，会议室见。' }
+          ]
+        }
+      };
+      const sc = SCENARIOS[sid] || SCENARIOS.cafe;
+      const lang = state.user.target_language || 'en';
+      const langKey = lang === 'en' ? 'en' : lang === 'ja' ? 'ja' : 'ko';
+      const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+      const langNames = { en: '英语', ja: '日语', ko: '韩语' };
+      let index = 0;
+      const self = this;
+
+      function play(text) {
+        if (!window.speechSynthesis) return;
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = langMap[lang] || 'en-US';
+        u.rate = 0.9;
+        window.speechSynthesis.speak(u);
+      }
+
+      function speakAndCheck() {
+        return new Promise((resolve) => {
+          const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+          if (!SR) { resolve({ ok: true, transcript: '' }); return; }
+          const rec = new SR();
+          rec.lang = langMap[lang] || 'en-US';
+          let resolved = false;
+          rec.onresult = (e) => { if (resolved) return; resolved = true; resolve({ ok: true, transcript: e.results[0][0].transcript.trim() }); };
+          rec.onerror = () => { if (resolved) return; resolved = true; resolve({ ok: true, transcript: '' }); };
+          rec.onend = () => { if (!resolved) { resolved = true; resolve({ ok: true, transcript: '' }); } };
+          try { rec.start(); } catch(e) { if (!resolved) { resolved = true; resolve({ ok: true, transcript: '' }); } }
+          setTimeout(() => { if (!resolved) { resolved = true; try { rec.stop(); } catch(e){}; resolve({ ok: true, transcript: '' }); } }, 8000);
+        });
+      }
+
+      function showStep() {
+        if (index >= sc.steps.length) {
+          self.innerHTML = `
+            <div class="text-center py-12">
+              <div class="text-6xl mb-4">🎉</div>
+              <h3 class="text-2xl font-bold text-slate-900 mb-2">场景练习完成！</h3>
+              <p class="text-slate-600 mb-6">已完成 ${sc.steps.length} 句对话</p>
+              <div class="flex gap-3 justify-center">
+                <button onclick="navigate('scenario')" class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium">返回场景列表</button>
+                <button onclick="navigate('dashboard')" class="px-6 py-3 bg-white border border-indigo-200 text-indigo-600 rounded-xl font-medium">返回学习中心</button>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        const step = sc.steps[index];
+        const isAI = step.speaker !== '我';
+        self.innerHTML = `
+          <div class="bg-gradient-to-br ${sc.bg} rounded-2xl p-6 mb-4">
+            <div class="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <button class="text-sm text-indigo-600 hover:underline" onclick="navigate('scenario')">← 返回</button>
+              <div class="text-sm text-slate-700">${sc.name} · ${index+1}/${sc.steps.length} · ${langNames[lang]}</div>
+            </div>
+            <div class="text-center py-4">
+              <div class="text-xs text-slate-500 mb-1">${step.speaker}</div>
+              <div class="text-3xl md:text-4xl font-bold text-slate-900 mb-2">${step[langKey] || step.zh}</div>
+              <div class="text-base text-slate-600">${step.zh}</div>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-100">
+            <div class="flex gap-2 mb-4 flex-wrap">
+              <button id="play_cur" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">🔊 听 ${step.speaker} 怎么说</button>
+              <button id="slow_cur" class="px-4 py-2 bg-white border border-indigo-200 text-indigo-600 rounded-lg text-sm">🐢 慢速</button>
+            </div>
+            ${isAI ? `
+              <div class="text-center text-sm text-slate-500 mb-3">👆 听完后，点击下方继续下一句</div>
+              <button id="next_step" class="w-full py-3 bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold rounded-xl">继续 →</button>
+            ` : `
+              <div class="text-center text-sm text-slate-500 mb-3">轮到你了，模仿跟读：</div>
+              <button id="mic_btn" class="w-full py-4 bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-2xl font-bold text-lg inline-flex items-center justify-center gap-3">
+                <span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span> 按住说话
+              </button>
+              <div id="mic_result" class="mt-3 text-sm text-slate-600 text-center"></div>
+              <button id="skip_speak" class="w-full mt-2 py-2 text-slate-500 text-sm">跳过跟读，直接下一句</button>
+            `}
+          </div>
+        `;
+        $('play_cur').onclick = () => play(step[langKey] || step.zh);
+        $('slow_cur').onclick = () => {
+          if (!window.speechSynthesis) return;
+          const u = new SpeechSynthesisUtterance(step[langKey] || step.zh);
+          u.lang = langMap[lang] || 'en-US';
+          u.rate = 0.55;
+          window.speechSynthesis.speak(u);
+        };
+        if (isAI) {
+          $('next_step').onclick = () => { index++; showStep(); };
+        } else {
+          $('mic_btn').onclick = async () => {
+            const btn = $('mic_btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span> 正在聆听...';
+            const r = await speakAndCheck();
+            $('mic_result').textContent = r.transcript ? '你说：' + r.transcript : '(未检测到语音)';
+            btn.disabled = false;
+            btn.innerHTML = '<span class="inline-block w-4 h-6 bg-white rounded speaking-wave"></span> 再试一次';
+            setTimeout(() => { index++; showStep(); }, 1500);
+          };
+          const sk = $('skip_speak');
+          if (sk) sk.onclick = () => { index++; showStep(); };
+        }
+      }
+      showStep();
+    }
+
+    // ===================== 每日学习提醒 =====================
+    async function renderReminders() {
+      if (!state.user) return navigate('login');
+      try {
+        const r = await api.get('/api/reminder');
+        this.innerHTML = `
+          <div class="max-w-2xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
+            <button class="text-sm text-indigo-600 hover:underline mb-3" onclick="navigate('dashboard')">← 返回</button>
+            <h1 class="text-2xl font-bold text-slate-900 mb-1">🔔 每日学习提醒</h1>
+            <p class="text-slate-600 mb-6">系统会在你设定的时间推送当日待学内容</p>
+            <div class="space-y-4">
+              <label class="flex items-center justify-between bg-slate-50 rounded-xl p-4">
+                <div>
+                  <div class="font-semibold text-slate-900">启用提醒</div>
+                  <div class="text-sm text-slate-500">开启后将每日推送学习提醒</div>
+                </div>
+                <input id="rem_enabled" type="checkbox" ${r.enabled ? 'checked' : ''} class="w-6 h-6" />
+              </label>
+              <div class="bg-slate-50 rounded-xl p-4">
+                <label class="block font-semibold text-slate-900 mb-2">⏰ 提醒时间</label>
+                <input id="rem_time" type="time" value="${r.time || '19:00'}" class="px-4 py-2 border border-slate-300 rounded-lg" />
+                <div class="text-xs text-slate-500 mt-1">当前时区：本地时间</div>
+              </div>
+              <div class="bg-slate-50 rounded-xl p-4">
+                <label class="block font-semibold text-slate-900 mb-2">📬 推送渠道</label>
+                <select id="rem_channel" class="w-full px-4 py-2 border border-slate-300 rounded-lg">
+                  <option value="site" ${r.channel === 'site' ? 'selected' : ''}>站内通知</option>
+                  <option value="email" ${r.channel === 'email' ? 'selected' : ''}>邮件提醒</option>
+                </select>
+              </div>
+              <button id="save_rem" class="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl">保存设置</button>
+            </div>
+            <div class="mt-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+              💡 提示：建议固定在精力充沛的时段学习，平台会基于你的活跃时间智能推荐。
+            </div>
+          </div>
+        `;
+        $('save_rem').onclick = async () => {
+          await api.put('/api/reminder', {
+            enabled: $('rem_enabled').checked,
+            time: $('rem_time').value,
+            channel: $('rem_channel').value
+          });
+          alert('✓ 提醒设置已保存');
+        };
+        if (r.enabled) setupReminderPolling(r.time);
+      } catch (e) { console.error(e); }
+    }
+
+    let _reminderShown = false;
+    function setupReminderPolling(timeStr) {
+      if (window._reminderInterval) return;
+      window._reminderInterval = setInterval(() => {
+        if (_reminderShown) return;
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        if (hh + ':' + mm === (timeStr || '19:00')) {
+          _reminderShown = true;
+          setTimeout(() => { _reminderShown = false; }, 60000);
+          if (window.confirm('🔔 该学习了！今天有 ' + (3 + Math.floor(Math.random() * 3)) + ' 节课待学习，是否前往？')) {
+            navigate('courses');
+          }
+        }
+      }, 60000);
+    }
+
+    // ===================== 单元综合测验 =====================
+    async function renderUnitTest() {
+      if (!state.user) return navigate('login');
+      const courseId = state.unitCourseId;
+      if (!courseId) return navigate('courses');
+      const course = state.currentCourse && state.currentCourse.id === courseId
+        ? state.currentCourse
+        : await api.get('/api/courses/' + courseId);
+      const allLessons = course.lessons;
+      const UNITS = [];
+      for (let i = 0; i < allLessons.length; i += 3) {
+        UNITS.push({ index: UNITS.length, lessons: allLessons.slice(i, i + 3) });
+      }
+      let unitIdx = state.unitIndex || 0;
+      const unit = UNITS[unitIdx];
+      if (!unit) return navigate('course', { currentCourse: course });
+
+      // 合并单元内所有 lesson 的 quiz 作为综合题库
+      const allQuizzes = [];
+      unit.lessons.forEach(l => {
+        (l.quiz || []).forEach(q => {
+          allQuizzes.push({ ...q, _lessonTitle: l.title });
+        });
+      });
+      const quizSet = allQuizzes.length > 0 ? allQuizzes : buildFallbackQuiz(unit.lessons);
+
+      let answers = new Array(quizSet.length).fill(-1);
+      let submitted = false;
+      const self = this;
+
+      function buildFallbackQuiz(lessons) {
+        const items = [];
+        lessons.forEach(l => {
+          (l.vocabulary || []).slice(0, 1).forEach(v => {
+            const distractors = (l.vocabulary || []).filter(x => x.word !== v.word).slice(0, 3).map(x => x.translation);
+            while (distractors.length < 3) distractors.push('其他');
+            items.push({ type: 'vocab', question: '【' + l.title + '】 "' + v.word + '" 的中文意思？', options: [v.translation, ...distractors.slice(0, 3)].slice(0, 4), answer: 0 });
+          });
+        });
+        return items;
+      }
+
+      function renderQuiz() {
+        self.innerHTML = `
+          <div class="max-w-3xl mx-auto bg-white rounded-2xl shadow-sm p-8 mt-6">
+            <button class="js-uq-back text-sm text-indigo-600 hover:underline mb-3">← 返回课程</button>
+            <div class="mb-4">
+              <div class="text-xs text-slate-500">${course.title} · 综合测验</div>
+              <h1 class="text-2xl font-bold text-slate-900">📋 第 ${unitIdx + 1} 单元测验（共 ${UNITS.length} 单元）</h1>
+              <p class="text-sm text-slate-500 mt-1">综合考察本单元 3 个课时的核心知识点</p>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2 mb-6">
+              <div class="bg-indigo-600 h-2 rounded-full transition-all" style="width: ${(answers.filter(a=>a>=0).length/quizSet.length)*100}%"></div>
+            </div>
+            <div class="space-y-5">
+              ${quizSet.map((q, qi) => `
+                <div class="bg-slate-50 rounded-xl p-4">
+                  <div class="text-xs text-indigo-600 mb-1">来自：${q._lessonTitle || ''}</div>
+                  <div class="font-medium text-slate-900 mb-3">${qi+1}. ${q.question}</div>
+                  <div class="space-y-2">
+                    ${q.options.map((o, oi) => `
+                      <button data-qi="${qi}" data-oi="${oi}" class="uq-opt w-full p-3 bg-white rounded-lg text-left border-2 ${submitted ? (oi === q.answer ? 'border-green-500 bg-green-50' : (answers[qi] === oi ? 'border-red-500 bg-red-50' : 'border-transparent')) : (answers[qi] === oi ? 'border-indigo-500' : 'border-transparent hover:border-indigo-300')}">${String.fromCharCode(65+oi)}. ${o}</button>
+                    `).join('')}
+                  </div>
+                  ${submitted ? `<div class="text-sm mt-2 ${answers[qi] === q.answer ? 'text-green-600' : 'text-red-600'}">${answers[qi] === q.answer ? '✓ 正确' : '✗ 正确答案：' + q.options[q.answer]}</div>` : ''}
+                </div>
+              `).join('')}
+            </div>
+            ${!submitted ? `<button id="uq_submit" class="mt-6 w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl">提交测验</button>` : `
+              <div class="mt-6 p-4 rounded-xl ${correctRate() >= 0.6 ? 'bg-green-50 border-2 border-green-300' : 'bg-amber-50 border-2 border-amber-300'}">
+                <div class="text-2xl font-bold ${correctRate() >= 0.6 ? 'text-green-700' : 'text-amber-700'} mb-1">得分：${score()} / ${quizSet.length}</div>
+                <div class="text-sm ${correctRate() >= 0.6 ? 'text-green-600' : 'text-amber-600'}">${correctRate() >= 0.6 ? '🎉 单元测验通过！' : '⚠️ 建议复习本单元后再试'}</div>
+                <div class="mt-3 flex gap-2 flex-wrap">
+                  <button id="uq_redo" class="px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm">重新测验</button>
+                  ${unitIdx < UNITS.length - 1 ? `<button id="uq_next" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">下一单元 →</button>` : ''}
+                  <button class="js-uq-back px-4 py-2 bg-white border border-slate-300 rounded-lg text-sm">返回课程</button>
+                </div>
+              </div>
+            `}
+          </div>
+        `;
+        if (!submitted) {
+          self.querySelectorAll('.uq-opt').forEach(b => {
+            b.onclick = () => {
+              const qi = parseInt(b.dataset.qi), oi = parseInt(b.dataset.oi);
+              answers[qi] = oi;
+              renderQuiz();
+            };
+          });
+          $('uq_submit').onclick = submitUnit;
+        } else {
+          $('uq_redo').onclick = () => { submitted = false; answers = new Array(quizSet.length).fill(-1); renderQuiz(); };
+          const nx = $('uq_next');
+          if (nx) nx.onclick = () => navigate('unit_test', { unitIndex: unitIdx + 1, unitCourseId: courseId, currentCourse: course });
+        }
+        self.querySelectorAll('.js-uq-back').forEach(b => b.onclick = () => navigate('course', { currentCourse: course }));
+      }
+
+      function score() { return answers.filter((a, i) => a === quizSet[i].answer).length; }
+      function correctRate() { return score() / quizSet.length; }
+      async function submitUnit() {
+        if (answers.some(a => a < 0)) { alert('请先完成所有题目'); return; }
+        submitted = true;
+        const s = score();
+        const weak = [];
+        quizSet.forEach((q, i) => {
+          if (answers[i] !== q.answer && q._lessonTitle) {
+            if (!weak.includes(q._lessonTitle)) weak.push(q._lessonTitle);
+          }
+        });
+        try {
+          await api.post('/api/unit-test/submit', {
+            course_id: courseId, unit_index: unitIdx, score: s, total: quizSet.length, weak_points: weak
+          });
+        } catch (e) {}
+        renderQuiz();
+      }
+      renderQuiz();
+    }
+
+    // ===================== 直播导学 =====================
+    const LIVE_SESSIONS = [
+      { id: 'l1', lang: 'en', level: 'beginner', title: '英语入门 · 字母发音与问候', teacher: 'Sarah 老师', time: '本周六 19:00-20:00', status: 'upcoming', replay: true, summary: '讲解 26 个字母的标准发音，介绍英语日常问候语 Hello / Good morning 的使用场景。' },
+      { id: 'l2', lang: 'en', level: 'intermediate', title: '英语中级 · 商务邮件技巧', teacher: 'Mike 老师', time: '本周日 20:00-21:00', status: 'upcoming', replay: true, summary: '如何写一封专业、得体的英文商务邮件，主题、称呼、正文、署名要点。' },
+      { id: 'l3', lang: 'ja', level: 'beginner', title: '日语入门 · 五十音图速记', teacher: 'Yuki 老师', time: '下周三 19:30-20:30', status: 'upcoming', replay: true, summary: '用联想记忆法快速掌握五十音图，平假名/片假名对照练习。' },
+      { id: 'l4', lang: 'ja', level: 'intermediate', title: '日语中级 · 敬语使用场景', teacher: 'Hiro 老师', time: '已结束 · 回放可用', status: 'past', replay: true, summary: '讲解 5 种敬语类型，演示商务/社交/家庭场景下的敬语使用差异。' },
+      { id: 'l5', lang: 'ko', level: 'beginner', title: '韩语入门 · 韩文发音规则', teacher: 'Jisoo 老师', time: '下周五 20:00-21:00', status: 'upcoming', replay: true, summary: '韩文辅音/元音发音、收音规则、连音现象。' },
+      { id: 'l6', lang: 'ko', level: 'intermediate', title: '韩语中级 · TOPIK II 备考', teacher: 'Minho 老师', time: '已结束 · 回放可用', status: 'past', replay: true, summary: 'TOPIK II 中高级阅读和写作题型分析，解题策略分享。' }
+    ];
+
+    async function renderLiveList() {
+      if (!state.user) return navigate('login');
+      const langFlags = { en: '🇬🇧', ja: '🇯🇵', ko: '🇰🇷' };
+      const langNames = { en: '英语', ja: '日语', ko: '韩语' };
+      this.innerHTML = `
+        <div class="mb-6">
+          <h1 class="text-3xl font-bold text-slate-900 mb-2">🎥 直播导学</h1>
+          <p class="text-slate-600">老师直播答疑 · 每级别每周 1 场，支持回放</p>
+        </div>
+        <div class="grid md:grid-cols-2 gap-5">
+          ${LIVE_SESSIONS.map(s => `
+            <div data-live="${s.id}" class="js-live-card cursor-pointer bg-white rounded-2xl p-5 border border-slate-100 card-hover">
+              <div class="flex items-center gap-2 mb-3">
+                <span class="text-2xl">${langFlags[s.lang]}</span>
+                <span class="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">${langNames[s.lang]}</span>
+                <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">${({beginner:'入门',intermediate:'中级',advanced:'高级'})[s.level]}</span>
+                <span class="ml-auto text-xs px-2 py-0.5 ${s.status==='upcoming' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'} rounded-full">${s.status==='upcoming' ? '🟢 即将开始' : '⚫ 已结束'}</span>
+              </div>
+              <h3 class="font-bold text-lg text-slate-900 mb-1">${s.title}</h3>
+              <div class="text-sm text-slate-500 mb-3">${s.teacher} · ${s.time}</div>
+              <p class="text-sm text-slate-600 line-clamp-2">${s.summary}</p>
+              <div class="mt-3 flex gap-2">
+                ${s.status==='upcoming' ? '<span class="text-xs px-3 py-1.5 bg-indigo-600 text-white rounded-lg font-medium">进入直播间 →</span>' : '<span class="text-xs px-3 py-1.5 bg-slate-200 text-slate-700 rounded-lg font-medium">▶ 回放</span>'}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `;
+      this.querySelectorAll('.js-live-card').forEach(el => {
+        el.onclick = () => navigate('live_room', { liveId: el.dataset.live });
+      });
+    }
+
+    async function renderLiveRoom() {
+      if (!state.user) return navigate('login');
+      const id = state.liveId;
+      const s = LIVE_SESSIONS.find(x => x.id === id) || LIVE_SESSIONS[0];
+      const langMap = { en: 'en-US', ja: 'ja-JP', ko: 'ko-KR' };
+      const isPast = s.status === 'past';
+      let playing = false;
+
+      this.innerHTML = `
+        <div class="mb-4 flex items-center gap-3 flex-wrap">
+          <button class="text-sm text-indigo-600 hover:underline" onclick="navigate('live')">← 返回直播间列表</button>
+        </div>
+        <div class="bg-gradient-to-br from-slate-800 to-indigo-900 rounded-2xl aspect-video max-h-[500px] mb-4 flex items-center justify-center text-white relative overflow-hidden">
+          <div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 30% 30%, #6366f1 0%, transparent 40%), radial-gradient(circle at 70% 70%, #ec4899 0%, transparent 40%);"></div>
+          <div class="text-center relative z-10">
+            <div class="text-7xl mb-3">${isPast ? '▶' : '🔴'}</div>
+            <div class="text-xl font-bold mb-1">${s.title}</div>
+            <div class="text-sm text-indigo-200">${s.teacher} · ${isPast ? '回放模式' : '直播中'}</div>
+          </div>
+          <div class="absolute top-3 left-3 flex gap-2">
+            <span class="px-2 py-1 bg-red-500 text-white text-xs font-bold rounded">${isPast ? '回放' : 'LIVE'}</span>
+            <span class="px-2 py-1 bg-white/20 text-white text-xs rounded">${({en:'英语',ja:'日语',ko:'韩语'})[s.lang]}</span>
+          </div>
+        </div>
+        <div class="bg-white rounded-2xl p-5 mb-4">
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <button id="live_play" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg font-medium">▶ ${isPast ? '播放回放' : '进入直播间'}</button>
+            <button id="live_audio" class="px-4 py-2.5 bg-white border border-indigo-200 text-indigo-600 rounded-lg font-medium">🔊 老师介绍</button>
+            ${!isPast ? '<span class="ml-2 text-xs text-slate-500">🟢 直播中可与老师弹幕互动</span>' : '<span class="ml-2 text-xs text-slate-500">已结束 · 支持回放</span>'}
+          </div>
+          <h3 class="font-bold text-slate-900 mb-2">📝 课程简介</h3>
+          <p class="text-slate-700 text-sm leading-relaxed">${s.summary}</p>
+        </div>
+        <div class="bg-white rounded-2xl p-5">
+          <h3 class="font-bold text-slate-900 mb-3">💬 讨论区</h3>
+          <div class="space-y-2 mb-3">
+            <div class="bg-slate-50 rounded-lg p-3 text-sm"><span class="font-semibold text-indigo-700">学员小张：</span><span class="text-slate-600">老师，什么时候开始？</span></div>
+            <div class="bg-slate-50 rounded-lg p-3 text-sm"><span class="font-semibold text-pink-700">${s.teacher}：</span><span class="text-slate-600">准时开课，记得提前准备好笔记本哦～</span></div>
+            <div class="bg-slate-50 rounded-lg p-3 text-sm"><span class="font-semibold text-indigo-700">学员Lily：</span><span class="text-slate-600">上次的回放很有帮助！</span></div>
+          </div>
+          <div class="flex gap-2">
+            <input id="live_msg" placeholder="说点什么..." class="flex-1 px-3 py-2 border border-slate-200 rounded-lg text-sm outline-none focus:ring-2 focus:ring-indigo-400" />
+            <button id="live_send" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm">发送</button>
+          </div>
+        </div>
+      `;
+
+      $('live_play').onclick = () => {
+        if (!playing) {
+          playing = true;
+          $('live_play').textContent = '⏸ 暂停';
+          // 模拟直播内容播放
+          if (window.speechSynthesis) {
+            const phrases = isPast
+              ? ['欢迎观看本期回放', '今天我们学习 ' + s.title, s.summary]
+              : ['欢迎来到直播间', '我是 ' + s.teacher, '今天我们一起学习 ' + s.title];
+            const u = new SpeechSynthesisUtterance(phrases.join('。 '));
+            u.lang = langMap[s.lang] || 'zh-CN';
+            u.rate = 0.95;
+            window.speechSynthesis.speak(u);
+          }
+        } else {
+          playing = false;
+          $('live_play').textContent = '▶ ' + (isPast ? '继续播放' : '继续');
+          if (window.speechSynthesis) window.speechSynthesis.cancel();
+        }
+      };
+      $('live_audio').onclick = () => {
+        if (!window.speechSynthesis) return;
+        const u = new SpeechSynthesisUtterance('大家好，我是' + s.teacher + '，欢迎来到本期直播。今天我们来聊一聊' + s.title);
+        u.lang = langMap[s.lang] || 'zh-CN';
+        u.rate = 0.95;
+        window.speechSynthesis.speak(u);
+      };
+      $('live_send').onclick = () => {
+        const v = $('live_msg').value.trim();
+        if (!v) return;
+        const div = document.createElement('div');
+        div.className = 'bg-indigo-50 rounded-lg p-3 text-sm';
+        div.innerHTML = '<span class="font-semibold text-indigo-700">我：</span><span class="text-slate-600">' + v + '</span>';
+        $('live_send').parentElement.previousElementSibling.appendChild(div);
+        $('live_msg').value = '';
+      };
     }
 
     render();
