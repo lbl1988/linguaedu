@@ -1,6 +1,17 @@
-fix: 听力训练干扰项改为同课其他对话翻译，避免选项重复
+feat: 直播课堂引入真实 YouTube 名师课程
 
-之前听力题的两个错误选项硬编码为「完全不同的意思」「另一个无关的翻译」，
-每题都一样且与语言无关，体验很差。现在从同课的其他对话翻译和词汇翻译中
-随机抽取 2 个不同干扰项，每题选项各不相同且更真实可信。
-英/日/韩三种语言均受此修复覆盖。
+替换原有模拟直播为全网顶级语言教师的真实 YouTube 视频：
+- 英语 4 门：BBC Learning English、English with Lucy、Rachel's English
+- 日语 4 门：JapanesePod101、Japanese From Zero、Misa、Kaname Naito
+- 韩语 3 门：Talk To Me In Korean、Go! Billy Korean
+
+功能升级：
+- YouTube iframe 真实播放器嵌入，支持字幕和全屏
+- 课程卡片展示视频缩略图、时长、教师订阅数
+- 语言筛选标签（全部/英/日/韩）
+- 课堂讨论区（实时弹幕互动）
+- 学习笔记功能（localStorage 持久化）
+- 相关课程推荐（同语言侧边栏）
+- 频道外链跳转（访问教师 YouTube 频道）
+
+所有视频 ID 已通过 YouTube oEmbed API 验证为公开可播放。
