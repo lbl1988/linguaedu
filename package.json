@@ -5,7 +5,9 @@
   "main": "server/index.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node server/index.js"
+    "dev": "node server/index.js",
+    "build": "node -e \"console.log('✅ LinguaEdu pre-flight: package.json OK. Checking server syntax and courses...'); const fs=require('fs'); const vm=require('vm'); const srv=fs.readFileSync('./server/index.js','utf8'); new vm.Script(srv,{filename:'server/index.js'}); const {courses}=require('./server/data/courses'); console.log('   - server/index.js syntax: OK'); console.log('   - courses.js loaded: '+courses.length+' 门课程'); const pub=require('path').join(process.cwd(),'public'); if(!fs.existsSync(pub) || !fs.existsSync(require('path').join(pub,'index.html'))){console.error('❌  public/index.html 缺失');process.exit(1);} console.log('   - public/index.html: OK'); console.log('✅ 预检查通过，准备启动服务。');\"",
+    "healthcheck": "node -e \"const https=require('http');const r=https.get('http://localhost:'+(process.env.PORT||3000)+'/api/courses',r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>{try{const n=JSON.parse(d).length;console.log('healthcheck OK courses='+n);process.exit(0);}catch(e){console.error('healthcheck FAIL',e.message,d.slice(0,100));process.exit(1);}});});r.on('error',e=>{console.error('healthcheck ERR',e.message);process.exit(1);});\""
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
