@@ -224,16 +224,52 @@
 
     // 离线 fallback 数据（用于 stats / progress / certificates / achievements / community 等）
     const OFFLINE_DEFAULTS = {
-      stats: () => ({
-        totalXp: 350, totalMinutes: 120, streak: 7,
-        stats: [
-          { study_date: new Date().toISOString().slice(0,10), minutes: 30, xp: 50 },
-          { study_date: new Date(Date.now()-86400000).toISOString().slice(0,10), minutes: 25, xp: 40 },
-          { study_date: new Date(Date.now()-172800000).toISOString().slice(0,10), minutes: 20, xp: 35 },
-          { study_date: new Date(Date.now()-259200000).toISOString().slice(0,10), minutes: 25, xp: 45 }
-        ],
-        offline: true
-      }),
+      _grantXp: async (xp) => {
+        const delta = parseInt(xp || 0, 10);
+        if (!delta) return;
+        let finalUser = null;
+        // 1) 更新 users 表
+        try {
+          const token = state.token || localStorage.getItem(localAuth._pk) || localStorage.getItem('lingua_token') || '';
+          const userId = localAuth._parseBearer(token);
+          if (userId) {
+            const users = localAuth._readUsers();
+            const idx = users.findIndex(x => x.id === userId);
+            if (idx >= 0) {
+              users[idx].total_xp = (users[idx].total_xp || 0) + delta;
+              localAuth._writeUsers(users);
+              finalUser = localAuth._sanitizeUser(users[idx]);
+            }
+          }
+        } catch (_) {}
+        // 2) 同步 state.user + lingua_user（保证页面刷新后一致）
+        const u = finalUser || state.user || JSON.parse(localStorage.getItem('lingua_user') || 'null');
+        if (u) {
+          if (!finalUser) {
+            u.total_xp = (u.total_xp || 0) + delta;
+            u.level = Math.floor(u.total_xp / 100) + 1;
+          }
+          state.user = u;
+          localStorage.setItem('lingua_user', JSON.stringify(u));
+        }
+        // 3) 同步导航栏徽章
+        try {
+          const el = $('xp_badge');
+          if (el && u) el.textContent = `${u.total_xp} XP`;
+        } catch (_) {}
+      },
+      stats: () => {
+        const u = state.user || JSON.parse(localStorage.getItem('lingua_user') || 'null');
+        const totalXp = u?.total_xp != null ? u.total_xp : 350;
+        const totalMinutes = Math.max(1, Math.round(totalXp * 0.35));
+        const streak = Math.max(1, Math.min(365, Math.ceil(totalXp / 50)));
+        const days = [];
+        for (let i = 3; i >= 0; i--) {
+          const d = new Date(Date.now() - i * 86400000);
+          days.push({ study_date: d.toISOString().slice(0,10), minutes: Math.round(totalMinutes/4) + i, xp: Math.round(totalXp/8) + i*2 });
+        }
+        return { totalXp, totalMinutes, streak, stats: days, offline: true };
+      },
       progress: () => {
         try { return JSON.parse(localStorage.getItem('lingua_progress') || '[]'); }
         catch (_) { return []; }
@@ -462,6 +498,16 @@
             if (idx >= 0) prog[idx] = { ...prog[idx], ...data, completed: true, offline: true };
             else prog.push({ ...data, completed: true, offline: true });
             localStorage.setItem('lingua_progress', JSON.stringify(prog));
+            // 同步奖励 XP
+            if (data.score) {
+              try { await OFFLINE_DEFAULTS._grantXp(data.score); } catch (_) {}
+            }
+            return { ok: true, offline: true };
+          }
+          if (path === '/api/stats/xp') {
+            const xp = parseInt((data || {}).xp || 0, 10);
+            if (!xp) return { ok: true, offline: true };
+            await OFFLINE_DEFAULTS._grantXp(xp);
             return { ok: true, offline: true };
           }
           if (path === '/api/certificate/issue') {
@@ -475,18 +521,6 @@
             certs.push(cert);
             localStorage.setItem('lingua_certificates', JSON.stringify(certs));
             return cert;
-          }
-          if (path === '/api/stats/xp') {
-            const userId = localAuth._parseBearer(state.token || '');
-            if (userId) {
-              const users = localAuth._readUsers();
-              const u = users.find(x => x.id === userId);
-              if (u) {
-                u.total_xp = (u.total_xp || 0) + (data.xp || 0);
-                localAuth._writeUsers(users);
-              }
-            }
-            return { ok: true, offline: true };
           }
           // ── 社区：发帖 + 评论，写入 localStorage ──
           if (path === '/api/community/posts') {
@@ -609,6 +643,14 @@
       } catch (e) {
         console.error(e);
       }
+      // 刷新导航栏 XP 徽章
+      try {
+        if (state.user) {
+          const stats = await api.get('/api/stats');
+          const el = $('xp_badge');
+          if (el) el.textContent = `${stats.totalXp} XP`;
+        }
+      } catch(e) {}
       app.appendChild(renderFooter());
     }
 
@@ -3450,14 +3492,33 @@
             loading="lazy"
             sandbox="allow-top-navigation allow-same-origin allow-forms allow-scripts allow-popups"
           ></iframe>`
-        : `<iframe
-            src="https://www.youtube.com/embed/${s.videoId}?autoplay=0&rel=0&modestbranding=1&hl=zh-CN&cc_load_policy=1"
-            class="w-full h-full"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen
-            loading="lazy"
-          ></iframe>`;
+        : (() => {
+            const thumb = `https://img.youtube.com/vi/${s.videoId}/maxresdefault.jpg`;
+            const fallback = `https://img.youtube.com/vi/${s.videoId}/hqdefault.jpg`;
+            const ytUrl = `https://www.youtube.com/watch?v=${s.videoId}`;
+            const watchedKey = 'live_watched_' + s.id;
+            const watched = localStorage.getItem(watchedKey) === '1';
+            return `
+              <div class="relative w-full h-full bg-black overflow-hidden group">
+                <img src="${thumb}"
+                     onerror="this.onerror=null;this.src='${fallback}'"
+                     class="w-full h-full object-cover opacity-90" />
+                <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <a href="${ytUrl}" target="_blank" rel="noopener"
+                     class="mb-5 w-20 h-20 rounded-full bg-red-600/90 hover:bg-red-600 text-white flex items-center justify-center shadow-2xl transition group-hover:scale-110">
+                    <div class="ml-2 w-0 h-0 border-t-[16px] border-t-transparent border-b-[16px] border-b-transparent border-l-[26px] border-l-white"></div>
+                  </a>
+                  <div class="text-white text-sm font-medium bg-black/60 px-4 py-1.5 rounded-full backdrop-blur">
+                    在 YouTube 中播放（新窗口打开，无需本站登录 Google 账号）
+                  </div>
+                </div>
+                <button id="live_watch_done" data-xp="50" data-key="${watchedKey}"
+                  class="absolute bottom-4 right-4 px-4 py-2 ${watched ? 'bg-green-600 cursor-default' : 'bg-indigo-600 hover:bg-indigo-700'} text-white rounded-lg text-sm font-medium shadow-lg">
+                  ${watched ? '✓ 已完成学习 +50 XP' : '标记完成学习 +50 XP'}
+                </button>
+              </div>`;
+          })();
 
       const channelLink = isBilibili
         ? `https://space.bilibili.com/${s.channelId}`
@@ -3557,17 +3618,40 @@
       `;
 
       // 讨论区发送
-      $('live_send').onclick = () => {
+      const chatKey = 'live_chat_' + s.id;
+      const chatEl = $('live_chat');
+      // 先加载已保存的讨论（除了预置的 3 条外，再追加本地用户发过的历史）
+      try {
+        const saved = JSON.parse(localStorage.getItem(chatKey) || '[]');
+        if (Array.isArray(saved) && saved.length) {
+          saved.forEach(msg => {
+            const div = document.createElement('div');
+            div.className = msg.me ? 'bg-indigo-50 rounded-lg p-3 text-sm' : 'bg-slate-50 rounded-lg p-3 text-sm';
+            const nameColor = msg.me ? 'text-indigo-700' : (msg.nameColor || 'text-pink-700');
+            div.innerHTML = '<span class="font-semibold ' + nameColor + '">' + (msg.me ? '我' : msg.name + '：') + '</span><span class="text-slate-600">' + msg.content.replace(/</g, '&lt;') + '</span>';
+            chatEl.appendChild(div);
+          });
+          chatEl.scrollTop = chatEl.scrollHeight;
+        }
+      } catch (_) {}
+      const sendMsg = () => {
         const v = $('live_msg').value.trim();
         if (!v) return;
         const div = document.createElement('div');
         div.className = 'bg-indigo-50 rounded-lg p-3 text-sm';
         div.innerHTML = '<span class="font-semibold text-indigo-700">我：</span><span class="text-slate-600">' + v.replace(/</g, '&lt;') + '</span>';
-        $('live_chat').appendChild(div);
-        $('live_chat').scrollTop = $('live_chat').scrollHeight;
+        chatEl.appendChild(div);
+        chatEl.scrollTop = chatEl.scrollHeight;
+        // 持久化
+        try {
+          const saved = JSON.parse(localStorage.getItem(chatKey) || '[]');
+          saved.push({ me: true, name: '我', nameColor: 'text-indigo-700', content: v, t: Date.now() });
+          localStorage.setItem(chatKey, JSON.stringify(saved.slice(-100)));
+        } catch (_) {}
         $('live_msg').value = '';
       };
-      $('live_msg').addEventListener('keydown', e => { if (e.key === 'Enter') $('live_send').click(); });
+      $('live_send').onclick = sendMsg;
+      $('live_msg').addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
 
       // 笔记保存
       const noteKey = 'live_note_' + s.id;
@@ -3581,6 +3665,22 @@
         btn.classList.add('bg-green-600');
         setTimeout(() => { btn.textContent = '保存笔记'; btn.classList.add('bg-indigo-600'); btn.classList.remove('bg-green-600'); }, 2000);
       };
+
+      // YouTube 模式下：标记完成学习（+XP）
+      const doneBtn = $('live_watch_done');
+      if (doneBtn && !isBilibili) {
+        doneBtn.onclick = async () => {
+          const key = doneBtn.dataset.key;
+          if (localStorage.getItem(key) === '1') return;
+          const xp = parseInt(doneBtn.dataset.xp || '50', 10);
+          localStorage.setItem(key, '1');
+          doneBtn.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+          doneBtn.classList.add('bg-green-600', 'cursor-default');
+          doneBtn.textContent = `✓ 已完成学习 +${xp} XP`;
+          await api.post('/api/stats/xp', { xp });
+          alert(`🎉 完成本课时学习，+${xp} XP`);
+        };
+      }
 
       // 相关推荐点击
       this.querySelectorAll('.js-live-card').forEach(el => {
