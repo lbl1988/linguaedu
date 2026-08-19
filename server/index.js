@@ -2,30 +2,109 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'lingua-edu-secret-key-2026';
 const PORT = process.env.PORT || 3000;
+const PUBLIC_DIR = path.join(__dirname, '..', 'public');
+const ROOT_DIR = path.join(__dirname, '..');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, '..', 'public')));
 
-// PostgreSQL 连接池 —— 支持云端数据库（Neon / Supabase / Render / Railway 等）
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.DATABASE_URL ? { rejectUnauthorized: false } : false
-});
+// 静态资源目录 - 校验目录存在，避免 Render 等部署平台路径错位
+if (fs.existsSync(PUBLIC_DIR) && fs.existsSync(path.join(PUBLIC_DIR, 'index.html'))) {
+  app.use(express.static(PUBLIC_DIR));
+  console.log('📂 静态目录:', PUBLIC_DIR);
+} else {
+  // 兼容 Render 等打包后目录结构不一致的情况，回退到根目录
+  console.warn('⚠️  public/index.html 未找到，使用回退静态路径:', ROOT_DIR);
+  app.use(express.static(ROOT_DIR));
+}
 
-pool.on('error', (err) => {
-  console.error('数据库连接错误:', err);
+// 显式路由：考试认证指南 & 备考规划（位于项目根，不经过 public 静态目录）
+app.get('/guide.html', (req, res) => {
+  const f = path.join(ROOT_DIR, 'guide.html');
+  if (fs.existsSync(f)) return res.sendFile(f);
+  res.status(404).send('Guide page not found');
 });
+app.get('/plan.html', (req, res) => {
+  const f = path.join(ROOT_DIR, 'plan.html');
+  if (fs.existsSync(f)) return res.sendFile(f);
+  res.status(404).send('Plan page not found');
+});
+// 兼容不带 .html 的短路径
+app.get('/guide', (req, res) => res.redirect('/guide.html'));
+app.get('/plan', (req, res) => res.redirect('/plan.html'));
+
+// ─── PostgreSQL 连接池（可降级为无DB模式） ───
+let dbReady = false;
+let dbError = null;
+let pool = null;
+
+if (process.env.DATABASE_URL) {
+  try {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: /^postgres:\/\//.test(process.env.DATABASE_URL) &&
+           !/localhost|127\.0\.0\.1/.test(process.env.DATABASE_URL)
+        ? { rejectUnauthorized: false }
+        : false
+    });
+    pool.on('error', (err) => {
+      console.error('PostgreSQL Pool 错误:', err.message);
+      dbReady = false;
+      dbError = err.message;
+    });
+  } catch (e) {
+    console.warn('⚠️  创建 Pool 失败，将以"无数据库降级模式"启动:', e.message);
+    pool = null;
+  }
+} else {
+  console.warn('⚠️  DATABASE_URL 环境变量未设置 —— 正在以"无数据库降级模式"启动');
+  console.warn('    访客可以：浏览课程、观看直播、查看考试指南/备考规划');
+  console.warn('    访客不可用：注册、登录、学习进度、笔记、社区（需要 PostgreSQL）');
+}
+
+// ─── 降级桩：未配置 DATABASE_URL 时，让 pool.query/pool.connect 返回可读错误而非崩溃 ───
+if (!pool) {
+  pool = {
+    query: function () {
+      return Promise.reject(new Error(
+        'DB_NOT_AVAILABLE: PostgreSQL DATABASE_URL 未配置。' +
+        '请在部署平台 Environment Variables 中添加 DATABASE_URL。' +
+        '当前处于降级模式，仅静态内容可正常访问。'
+      ));
+    },
+    connect: function () {
+      return Promise.reject(new Error('DB_NOT_AVAILABLE: DATABASE_URL 未设置'));
+    },
+    on: function () {}
+  };
+}
+
+// DB 就绪检查中间件 - 所有需要 DB 的路由统一使用
+function requireDB(req, res, next) {
+  if (!dbReady) {
+    return res.status(503).json({
+      error: '数据库服务暂不可用',
+      hint: dbError || '请在部署平台（Render / Railway 等）的 Environment Variables 中配置 DATABASE_URL（PostgreSQL 连接串）',
+      doc: '详细配置见 README.md 第 7 节「快速开始」'
+    });
+  }
+  next();
+}
 
 // ─── 数据库初始化 ───
 async function initDB() {
+  if (!pool) {
+    console.warn('ℹ️  跳过数据库初始化（DATABASE_URL 未配置），降级模式启动');
+    return false;
+  }
   const client = await pool.connect();
   try {
     await client.query(`
@@ -160,6 +239,8 @@ async function initDB() {
       END $$;
     `);
     console.log('✅ 数据库表初始化完成');
+    dbReady = true;
+    return true;
   } finally {
     client.release();
   }
@@ -758,23 +839,50 @@ app.get('/api/report/monthly', authMiddleware, async (req, res) => {
   }
 });
 
-// ─── 前端路由 ───
+// ─── 前端路由（SPA 兜底：找不到的 GET 请求都返回主应用） ───
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+  // 明确的静态 API 路径不触发 SPA 兜底
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'API 路由不存在', path: req.path });
+  }
+  const candidates = [
+    path.join(PUBLIC_DIR, 'index.html'),
+    path.join(ROOT_DIR, 'public', 'index.html'),
+    path.join(ROOT_DIR, 'index.html')
+  ];
+  const target = candidates.find(f => fs.existsSync(f));
+  if (target) return res.sendFile(target);
+  res.status(404).send('LinguaEdu: index.html not found. Please verify deployment structure.');
 });
 
-// ─── 启动 ───
-initDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`🌐 LinguaEdu Platform running at http://localhost:${PORT}`);
-    if (process.env.DATABASE_URL) {
-      console.log('✅ 已连接云数据库 PostgreSQL');
-    } else {
-      console.log('⚠️  未设置 DATABASE_URL，请配置 .env 文件连接云数据库');
+// ─── 启动（任何情况下都尝试启动，确保网站至少能访问静态内容） ───
+async function startServer() {
+  try {
+    const ok = await initDB();
+    if (ok) {
+      dbReady = true;
     }
+  } catch (err) {
+    console.warn('⚠️  数据库初始化异常（降级启动）:', err.message);
+    dbReady = false;
+    dbError = err.message;
+  }
+  app.listen(PORT, () => {
+    console.log('');
+    console.log('╔══════════════════════════════════════════════════════════════╗');
+    console.log('║            🌐 LinguaEdu Platform 启动成功                    ║');
+    console.log('╠══════════════════════════════════════════════════════════════╣');
+    console.log(`║  📍 访问地址:   http://localhost:${PORT}`.padEnd(61) + '║');
+    console.log(`║  💾 数据库:     ${dbReady ? '✅ PostgreSQL 已连接' : '⚠️  降级模式（未配置 DATABASE_URL）'}`.padEnd(61) + '║');
+    console.log(`║  📘 考试指南:   http://localhost:${PORT}/guide.html`.padEnd(61) + '║');
+    console.log(`║  📋 备考规划:   http://localhost:${PORT}/plan.html`.padEnd(61) + '║');
+    if (!dbReady) {
+      console.log('║                                                              ║');
+      console.log('║  提示：注册/登录/进度/社区功能需 PostgreSQL，配置方法见 README  ║');
+    }
+    console.log('╚══════════════════════════════════════════════════════════════╝');
+    console.log('');
   });
-}).catch(err => {
-  console.error('❌ 数据库初始化失败:', err.message);
-  console.error('请检查 DATABASE_URL 环境变量是否正确配置');
-  process.exit(1);
-});
+}
+
+startServer();
