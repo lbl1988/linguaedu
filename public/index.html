@@ -117,7 +117,130 @@
     ];
     const FALLBACK_FILTERS = { textbooks: ['通用英语','商务英语','剑桥雅思 15-19','大家的日语','新标准日本语','新完全掌握 N2','延世韩国语','延世韩国语 2','TOPIK 官方真题 66-72 回','Le Nouveau Taxi 1','DELF B2 250 真题','Menschen A1','德福真题集 + 高频主题','Aula Internacional 1','DELE B2 Cronómetro'] };
 
-    // ─── 安全的 API 封装：解析失败或 404 时返回 fallback 数据 ───
+    // ─── 离线认证（LocalStorage）：纯静态站降级模式下的注册/登录/鉴权 ───
+    const localAuth = {
+      _usersKey: 'lingua_users',
+      _pk: 'lingua_active_token',
+
+      _readUsers() {
+        try { return JSON.parse(localStorage.getItem(this._usersKey) || '[]'); }
+        catch (_) { return []; }
+      },
+      _writeUsers(users) {
+        localStorage.setItem(this._usersKey, JSON.stringify(users));
+      },
+      _generateToken(userId) {
+        return 'offline_' + userId + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 10);
+      },
+      _parseBearer(token) {
+        if (!token) return null;
+        if (!token.startsWith('offline_')) return null;
+        const parts = token.split('_');
+        if (parts.length < 4) return null;
+        return parts[1];
+      },
+      _sanitizeUser(u) {
+        return {
+          id: u.id,
+          username: u.username,
+          email: u.email,
+          native_language: u.native_language || 'zh',
+          target_language: u.target_language || 'en',
+          learning_path: u.learning_path || 'standard',
+          study_goal: u.study_goal || null,
+          total_xp: u.total_xp || 0,
+          level: Math.floor((u.total_xp || 0) / 100) + 1,
+          created_at: u.created_at
+        };
+      },
+
+      async register(payload) {
+        await new Promise(r => setTimeout(r, 300));
+        const { username, email, password, native_language, target_language } = payload || {};
+        if (!username || username.length < 2) return { error: '用户名至少 2 个字符' };
+        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: '请输入有效邮箱' };
+        if (!password || password.length < 6) return { error: '密码至少 6 位' };
+        const users = this._readUsers();
+        if (users.some(u => u.username === username)) return { error: '用户名已存在' };
+        if (users.some(u => u.email === email)) return { error: '邮箱已注册' };
+        const id = 'u_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+        const user = {
+          id, username, email,
+          password_hash: btoa(password),
+          native_language: native_language || 'zh',
+          target_language: target_language || 'en',
+          learning_path: 'standard',
+          study_goal: null,
+          total_xp: 0,
+          created_at: new Date().toISOString()
+        };
+        users.push(user);
+        this._writeUsers(users);
+        const token = this._generateToken(id);
+        localStorage.setItem(this._pk, token);
+        return { token, user: this._sanitizeUser(user), offline: true };
+      },
+
+      async login(payload) {
+        await new Promise(r => setTimeout(r, 300));
+        const { login, password } = payload || {};
+        if (!login || !password) return { error: '请输入账号和密码' };
+        const users = this._readUsers();
+        const user = users.find(u => u.username === login || u.email === login);
+        if (!user) return { error: '账号或密码错误' };
+        if (user.password_hash !== btoa(password)) return { error: '账号或密码错误' };
+        const token = this._generateToken(user.id);
+        localStorage.setItem(this._pk, token);
+        return { token, user: this._sanitizeUser(user), offline: true };
+      },
+
+      async logout() {
+        localStorage.removeItem(this._pk);
+        return { ok: true, offline: true };
+      },
+
+      async getProfile() {
+        const userId = this._parseBearer(state.token || localStorage.getItem(this._pk) || '');
+        if (!userId) return { error: '未登录', code: 401 };
+        const users = this._readUsers();
+        const user = users.find(u => u.id === userId);
+        if (!user) return { error: '用户不存在', code: 404 };
+        return this._sanitizeUser(user);
+      },
+
+      async updateProfile(patch) {
+        const userId = this._parseBearer(state.token || localStorage.getItem(this._pk) || '');
+        if (!userId) return { error: '未登录', code: 401 };
+        const users = this._readUsers();
+        const idx = users.findIndex(u => u.id === userId);
+        if (idx < 0) return { error: '用户不存在', code: 404 };
+        users[idx] = { ...users[idx], ...(patch || {}) };
+        this._writeUsers(users);
+        return this._sanitizeUser(users[idx]);
+      },
+
+      isOfflineToken(token) { return this._parseBearer(token || '') !== null; }
+    };
+
+    // 离线 fallback 数据（用于 stats / progress / certificates 等）
+    const OFFLINE_DEFAULTS = {
+      stats: () => ({ totalXp: 0, totalMinutes: 0, streak: 0, stats: [], offline: true }),
+      progress: () => {
+        try { return JSON.parse(localStorage.getItem('lingua_progress') || '[]'); }
+        catch (_) { return []; }
+      },
+      recommendations: () => FALLBACK_COURSES.slice(0, 3),
+      ability: () => ({ total: 0, mastered: 0, offline: true }),
+      weakPoints: () => [],
+      studyPlan: () => null,
+      certificates: () => {
+        try { return JSON.parse(localStorage.getItem('lingua_certificates') || '[]'); }
+        catch (_) { return []; }
+      },
+      reminder: () => null
+    };
+
+    // ─── 安全的 API 封装：解析失败或 404 时返回 fallback / localStorage 数据 ───
     function _safeJson(res) {
       const ct = res.headers.get('content-type') || '';
       if (!res.ok || !ct.includes('application/json')) {
@@ -132,7 +255,17 @@
           const res = await fetch(path, { headers });
           return await _safeJson(res);
         } catch (e) {
-          // 静态站 / 数据库未配置时，使用内嵌数据
+          // ── 认证相关：走 LocalStorage 离线模式 ──
+          if (path === '/api/user/profile') return localAuth.getProfile();
+          if (path === '/api/stats') return OFFLINE_DEFAULTS.stats();
+          if (path === '/api/progress') return OFFLINE_DEFAULTS.progress();
+          if (path === '/api/recommendations') return OFFLINE_DEFAULTS.recommendations();
+          if (path === '/api/ability') return OFFLINE_DEFAULTS.ability();
+          if (path === '/api/weak-points') return OFFLINE_DEFAULTS.weakPoints();
+          if (path === '/api/study-plan') return OFFLINE_DEFAULTS.studyPlan();
+          if (path === '/api/certificates') return OFFLINE_DEFAULTS.certificates();
+          if (path === '/api/reminder') return OFFLINE_DEFAULTS.reminder();
+          // ── 课程相关：走内嵌 FALLBACK ──
           if (path.startsWith('/api/courses/search') || path === '/api/courses') {
             let result = FALLBACK_COURSES.slice();
             try {
@@ -150,7 +283,6 @@
             return result;
           }
           if (path === '/api/courses/filters') return FALLBACK_FILTERS;
-          // 单课详情：从 fallback 取
           const m = path.match(/^\/api\/courses\/([^/]+)$/);
           if (m && !path.includes('/lessons/')) {
             const c = FALLBACK_COURSES.find(x => x.id === m[1]);
@@ -166,7 +298,47 @@
           const res = await fetch(path, { method: 'POST', headers, body: JSON.stringify(data) });
           return await _safeJson(res);
         } catch (e) {
-          return { error: 'API_SERVICE_UNAVAILABLE', hint: '部署平台未启动 Web Service 后端，或 DATABASE_URL 未配置。' };
+          // ── 认证相关：LocalStorage 离线实现 ──
+          if (path === '/api/auth/register') return localAuth.register(data);
+          if (path === '/api/auth/login') return localAuth.login(data);
+          if (path === '/api/auth/logout') return localAuth.logout();
+
+          // ── 进度 / 证书 / 打卡：写入 localStorage 持久化 ──
+          if (path === '/api/progress') {
+            const prog = OFFLINE_DEFAULTS.progress();
+            const idx = prog.findIndex(p => p.course_id === data.course_id && p.lesson_id === data.lesson_id);
+            if (idx >= 0) prog[idx] = { ...prog[idx], ...data, completed: true, offline: true };
+            else prog.push({ ...data, completed: true, offline: true });
+            localStorage.setItem('lingua_progress', JSON.stringify(prog));
+            return { ok: true, offline: true };
+          }
+          if (path === '/api/certificate/issue') {
+            const certs = OFFLINE_DEFAULTS.certificates();
+            const cert = {
+              id: 'cert_' + Date.now().toString(36),
+              ...data,
+              issued_at: new Date().toISOString(),
+              offline: true
+            };
+            certs.push(cert);
+            localStorage.setItem('lingua_certificates', JSON.stringify(certs));
+            return cert;
+          }
+          if (path === '/api/stats/xp') {
+            // 经验值累加（简单累加到 profile.total_xp）
+            const userId = localAuth._parseBearer(state.token || '');
+            if (userId) {
+              const users = localAuth._readUsers();
+              const u = users.find(x => x.id === userId);
+              if (u) {
+                u.total_xp = (u.total_xp || 0) + (data.xp || 0);
+                localAuth._writeUsers(users);
+              }
+            }
+            return { ok: true, offline: true };
+          }
+          // 其他路径仍返回 API_SERVICE_UNAVAILABLE，前端页面会友好提示
+          return { error: 'API_SERVICE_UNAVAILABLE', hint: '当前为纯静态站离线模式，此功能需要后端支持。' };
         }
       },
       async put(path, data) {
@@ -176,7 +348,15 @@
           const res = await fetch(path, { method: 'PUT', headers, body: JSON.stringify(data) });
           return await _safeJson(res);
         } catch (e) {
-          return { error: 'API_SERVICE_UNAVAILABLE', hint: '部署平台未启动 Web Service 后端，或 DATABASE_URL 未配置。' };
+          // 学习目标、学习路径更新 → 写入 LocalStorage profile
+          if (path === '/api/user/goal' || path === '/api/user/path' || path === '/api/user/profile') {
+            return localAuth.updateProfile(data || {});
+          }
+          if (path === '/api/reminder') {
+            localStorage.setItem('lingua_reminder', JSON.stringify(data || {}));
+            return { ok: true, offline: true };
+          }
+          return { error: 'API_SERVICE_UNAVAILABLE', hint: '当前为纯静态站离线模式，此功能需要后端支持。' };
         }
       }
     };
