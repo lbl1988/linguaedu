@@ -9,37 +9,139 @@ const jwt = require('jsonwebtoken');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'lingua-edu-secret-key-2026';
 const PORT = process.env.PORT || 3000;
-const PUBLIC_DIR = path.join(__dirname, '..', 'public');
-const ROOT_DIR = path.join(__dirname, '..');
+
+// ─── 稳健地查找 public/ 静态目录 ───
+// 在 Render / Docker / 本地开发中 __dirname / process.cwd() 可能不同，
+// 统一用多个候选路径探测，找到真正包含 index.html 的那个。
+function resolvePublicDir() {
+  const candidates = [
+    path.resolve(process.cwd(), 'public'),
+    path.resolve(__dirname, '..', 'public'),
+    path.resolve(__dirname, '..', '..', 'public'),
+    path.resolve(process.cwd())              // 兼容：运行 cwd 本身就是 public 的情况
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(p) && fs.statSync(p).isDirectory() && fs.existsSync(path.join(p, 'index.html'))) {
+        return p;
+      }
+    } catch (_) { /* 忽略，继续尝试下一个 */ }
+  }
+  return null;
+}
+
+function resolveRootDir() {
+  // 项目根（有 package.json / server/ / public/ 等文件夹）
+  const candidates = [
+    path.resolve(process.cwd()),
+    path.resolve(__dirname, '..'),
+    path.resolve(__dirname, '..', '..')
+  ];
+  for (const p of candidates) {
+    try {
+      if (fs.existsSync(path.join(p, 'package.json')) ||
+          fs.existsSync(path.join(p, 'server', 'index.js'))) {
+        return p;
+      }
+    } catch (_) {}
+  }
+  return path.resolve(__dirname, '..');
+}
+
+const PUBLIC_DIR = resolvePublicDir();
+const ROOT_DIR = resolveRootDir();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// 静态资源目录 - 校验目录存在，避免 Render 等部署平台路径错位
-if (fs.existsSync(PUBLIC_DIR) && fs.existsSync(path.join(PUBLIC_DIR, 'index.html'))) {
-  app.use(express.static(PUBLIC_DIR));
-  console.log('📂 静态目录:', PUBLIC_DIR);
-} else {
-  // 兼容 Render 等打包后目录结构不一致的情况，回退到根目录
-  console.warn('⚠️  public/index.html 未找到，使用回退静态路径:', ROOT_DIR);
-  app.use(express.static(ROOT_DIR));
+// ─────────────────────────────────────────────────────
+// 🔒 安全先行：绝对禁止访问源代码 / 敏感配置文件
+// ─────────────────────────────────────────────────────
+const SENSITIVE_RE = new RegExp(
+  '(^|/)(' + [
+    'server', 'node_modules', '.git', '.github', '.vscode', '.idea',
+    'scripts', 'tests', '__tests__', 'coverage', '.husky'
+  ].join('|') + ')(/|$)',
+  'i'
+);
+const SENSITIVE_EXTS_RE = /\.(js|mjs|cjs|ts|json|md|env|env\.[^./]+|log|yml|yaml|toml|sql|ini|config\.[^.]+)$/i;
+const EXPLICIT_SENSITIVE_FILES = new Set([
+  '/package.json', '/package-lock.json', '/yarn.lock', '/pnpm-lock.yaml',
+  '/.env', '/.env.local', '/.env.production', '/.env.development',
+  '/.gitignore', '/.gitattributes', '/README.md', '/DEPLOY.md',
+  '/commit_msg.txt', '/tsconfig.json', '/jsconfig.json', '/.eslintrc',
+  '/.eslintrc.js', '/.prettierrc', '/Dockerfile', '/render.yaml'
+]);
+
+app.use((req, res, next) => {
+  const p = decodeURIComponent(req.path.split('?')[0]);
+  if (EXPLICIT_SENSITIVE_FILES.has(p) ||
+      SENSITIVE_RE.test(p) ||
+      (SENSITIVE_EXTS_RE.test(p) && !/\.html?$/i.test(p))) {
+    return res.status(403).type('text/plain').send('Forbidden');
+  }
+  next();
+});
+
+// ─── 显式首页路由（优先级最高，绕过 static 中间件） ───
+function resolveIndexHtml() {
+  const tries = [
+    PUBLIC_DIR ? path.join(PUBLIC_DIR, 'index.html') : null,
+    path.join(ROOT_DIR, 'public', 'index.html'),
+    path.join(ROOT_DIR, 'index.html')
+  ].filter(Boolean);
+  for (const t of tries) {
+    if (t && fs.existsSync(t)) return t;
+  }
+  return null;
+}
+function resolveHtmlFile(name) {
+  const tries = [
+    PUBLIC_DIR ? path.join(PUBLIC_DIR, name) : null,
+    path.join(ROOT_DIR, 'public', name),
+    path.join(ROOT_DIR, name)
+  ].filter(Boolean);
+  for (const t of tries) {
+    if (t && fs.existsSync(t)) return t;
+  }
+  return null;
 }
 
-// 显式路由：考试认证指南 & 备考规划（位于项目根，不经过 public 静态目录）
+app.get(['/', '/index.html'], (req, res) => {
+  const f = resolveIndexHtml();
+  if (f) return res.sendFile(f);
+  res.status(500).type('text/plain').send(
+    'LinguaEdu: 未找到 index.html，请确认部署结构包含 public/index.html。' +
+    '当前 PUBLIC_DIR=' + JSON.stringify(PUBLIC_DIR) + ' ROOT_DIR=' + JSON.stringify(ROOT_DIR)
+  );
+});
+
+// 考试指南 / 备考规划（多路径查找，同时支持 public 内副本和项目根原文件）
 app.get('/guide.html', (req, res) => {
-  const f = path.join(ROOT_DIR, 'guide.html');
-  if (fs.existsSync(f)) return res.sendFile(f);
+  const f = resolveHtmlFile('guide.html');
+  if (f) return res.sendFile(f);
   res.status(404).send('Guide page not found');
 });
 app.get('/plan.html', (req, res) => {
-  const f = path.join(ROOT_DIR, 'plan.html');
-  if (fs.existsSync(f)) return res.sendFile(f);
+  const f = resolveHtmlFile('plan.html');
+  if (f) return res.sendFile(f);
   res.status(404).send('Plan page not found');
 });
-// 兼容不带 .html 的短路径
 app.get('/guide', (req, res) => res.redirect('/guide.html'));
 app.get('/plan', (req, res) => res.redirect('/plan.html'));
+
+// ─── 静态资源目录：只会服务 PUBLIC_DIR 下的文件 ───
+if (PUBLIC_DIR) {
+  app.use(express.static(PUBLIC_DIR, {
+    index: false,        // 首页已由显式路由接管，避免 static 自动干涉 "/"
+    dotfiles: 'ignore',
+    extensions: ['html', 'htm']
+  }));
+  console.log('📂 静态目录:', PUBLIC_DIR);
+} else {
+  console.warn('⚠️  未找到 public/ 目录，将仅通过显式路由提供 HTML 页面；请确认部署文件完整。');
+}
 
 // ─── PostgreSQL 连接池（可降级为无DB模式） ───
 let dbReady = false;
@@ -152,10 +254,11 @@ async function initDB() {
       );
       CREATE TABLE IF NOT EXISTS learning_stats (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id),
+        user_id INTEGER NOT NULL,
         study_date TEXT NOT NULL,
         minutes INTEGER DEFAULT 0,
-        xp INTEGER DEFAULT 0
+        xp INTEGER DEFAULT 0,
+        created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
       CREATE TABLE IF NOT EXISTS placement_tests (
         id SERIAL PRIMARY KEY,
@@ -207,7 +310,7 @@ async function initDB() {
       );
       CREATE TABLE IF NOT EXISTS ability_scores (
         id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL REFERENCES users(id),
+        user_id INTEGER NOT NULL REFERENCES users(id) UNIQUE,
         listening INTEGER DEFAULT 50,
         speaking INTEGER DEFAULT 50,
         reading INTEGER DEFAULT 50,
@@ -216,8 +319,7 @@ async function initDB() {
         updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
       );
       CREATE TABLE IF NOT EXISTS reminder_settings (
-        id SERIAL PRIMARY KEY,
-        user_id INTEGER NOT NULL UNIQUE REFERENCES users(id),
+        user_id INTEGER PRIMARY KEY REFERENCES users(id),
         enabled INTEGER DEFAULT 1,
         time TEXT DEFAULT '19:00',
         channel TEXT DEFAULT 'site'
@@ -247,7 +349,7 @@ async function initDB() {
 }
 
 // ─── 用户认证 ───
-app.post('/api/auth/register', async (req, res) => {
+app.post('/api/auth/register', requireDB, async (req, res) => {
   try {
     const { username, email, password, native_language, target_language } = req.body;
     if (!username || !email || !password) {
@@ -273,7 +375,7 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', requireDB, async (req, res) => {
   try {
     const { login, password } = req.body;
     const result = await pool.query('SELECT * FROM users WHERE username = $1 OR email = $2', [login, login]);
@@ -307,7 +409,7 @@ function authMiddleware(req, res, next) {
 }
 
 // ─── 用户资料 ───
-app.get('/api/user/profile', authMiddleware, async (req, res) => {
+app.get('/api/user/profile', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, username, email, native_language, target_language, level, created_at FROM users WHERE id = $1', [req.user.id]);
     if (result.rows.length === 0) return res.status(404).json({ error: '用户不存在' });
@@ -317,7 +419,7 @@ app.get('/api/user/profile', authMiddleware, async (req, res) => {
   }
 });
 
-app.put('/api/user/profile', authMiddleware, async (req, res) => {
+app.put('/api/user/profile', authMiddleware, requireDB, async (req, res) => {
   try {
     const { native_language, target_language, level } = req.body;
     const sets = [];
@@ -336,59 +438,90 @@ app.put('/api/user/profile', authMiddleware, async (req, res) => {
   }
 });
 
-// ─── 课程 ───
+// ─── 课程（100% 内存数据，不依赖 DB） ───
+function loadCourses() {
+  // 本地 require 缓存，出错时返回空数组兜底
+  try {
+    const m = require('./data/courses');
+    return m.courses || [];
+  } catch (e) {
+    console.error('❌ 加载 courses.js 失败:', e.message);
+    return [];
+  }
+}
+
 app.get('/api/courses', (req, res) => {
-  const lang = req.query.language;
-  const { courses } = require('./data/courses');
-  const filtered = lang ? courses.filter(c => c.language === lang) : courses;
-  res.json(filtered);
+  try {
+    const lang = req.query.language;
+    const courses = loadCourses();
+    const filtered = lang ? courses.filter(c => c.language === lang) : courses;
+    res.json(filtered);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // 注意：/search 和 /filters 必须在 /:courseId 之前定义，否则会被 :courseId 吞掉
 app.get('/api/courses/search', (req, res) => {
-  const { courses } = require('./data/courses');
-  const { q, goal, language, level, duration, textbook } = req.query;
-  let result = courses;
-  if (language) result = result.filter(c => c.language === language);
-  if (level) result = result.filter(c => c.level === level);
-  if (duration) result = result.filter(c => c.durationCategory === duration);
-  if (textbook) result = result.filter(c => c.textbook === textbook);
-  if (goal) result = result.filter(c => c.goals && c.goals.includes(goal));
-  if (q) {
-    const k = q.toLowerCase();
-    result = result.filter(c =>
-      c.title.toLowerCase().includes(k) ||
-      c.description.toLowerCase().includes(k) ||
-      c.lessons.some(l => l.title.toLowerCase().includes(k))
-    );
+  try {
+    const courses = loadCourses();
+    const { q, goal, language, level, duration, textbook } = req.query;
+    let result = courses.slice();
+    if (language) result = result.filter(c => c.language === language);
+    if (level) result = result.filter(c => c.level === level);
+    if (duration) result = result.filter(c => c.durationCategory === duration);
+    if (textbook) result = result.filter(c => c.textbook === textbook);
+    if (goal) result = result.filter(c => c.goals && c.goals.includes(goal));
+    if (q) {
+      const k = String(q).toLowerCase();
+      result = result.filter(c =>
+        (c.title || '').toLowerCase().includes(k) ||
+        (c.description || '').toLowerCase().includes(k) ||
+        Array.isArray(c.lessons) && c.lessons.some(l => (l.title || '').toLowerCase().includes(k))
+      );
+    }
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
-  res.json(result);
 });
 
 app.get('/api/courses/filters', (req, res) => {
-  const { courses } = require('./data/courses');
-  const textbooks = [...new Set(courses.map(c => c.textbook))];
-  res.json({ textbooks });
+  try {
+    const courses = loadCourses();
+    const textbooks = [...new Set(courses.map(c => c.textbook).filter(Boolean))];
+    res.json({ textbooks });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.get('/api/courses/:courseId', (req, res) => {
-  const { courses } = require('./data/courses');
-  const course = courses.find(c => c.id === req.params.courseId);
-  if (!course) return res.status(404).json({ error: '课程不存在' });
-  res.json(course);
+  try {
+    const courses = loadCourses();
+    const course = courses.find(c => c.id === req.params.courseId);
+    if (!course) return res.status(404).json({ error: '课程不存在' });
+    res.json(course);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 app.get('/api/courses/:courseId/lessons/:lessonId', (req, res) => {
-  const { courses } = require('./data/courses');
-  const course = courses.find(c => c.id === req.params.courseId);
-  if (!course) return res.status(404).json({ error: '课程不存在' });
-  const lesson = course.lessons.find(l => l.id === req.params.lessonId);
-  if (!lesson) return res.status(404).json({ error: '课时不存在' });
-  res.json(lesson);
+  try {
+    const courses = loadCourses();
+    const course = courses.find(c => c.id === req.params.courseId);
+    if (!course) return res.status(404).json({ error: '课程不存在' });
+    const lesson = (course.lessons || []).find(l => l.id === req.params.lessonId);
+    if (!lesson) return res.status(404).json({ error: '课时不存在' });
+    res.json(lesson);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
-// ─── 学习进度 ───
-app.post('/api/progress', authMiddleware, async (req, res) => {
+// ─── 学习进度（需 DB） ───
+app.post('/api/progress', authMiddleware, requireDB, async (req, res) => {
   try {
     const { course_id, lesson_id, completed, score } = req.body;
     const existing = await pool.query('SELECT * FROM progress WHERE user_id=$1 AND course_id=$2 AND lesson_id=$3',
@@ -415,7 +548,7 @@ app.post('/api/progress', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/progress', authMiddleware, async (req, res) => {
+app.get('/api/progress', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM progress WHERE user_id=$1', [req.user.id]);
     res.json(result.rows);
@@ -424,7 +557,7 @@ app.get('/api/progress', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/stats', authMiddleware, async (req, res) => {
+app.get('/api/stats', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM learning_stats WHERE user_id=$1 ORDER BY study_date DESC LIMIT 30', [req.user.id]);
     const stats = result.rows;
@@ -438,7 +571,7 @@ app.get('/api/stats', authMiddleware, async (req, res) => {
 });
 
 function calculateStreak(dates) {
-  if (dates.length === 0) return 0;
+  if (!dates || dates.length === 0) return 0;
   const dateSet = new Set(dates);
   let streak = 0;
   let cursor = new Date();
@@ -456,27 +589,29 @@ function calculateStreak(dates) {
 
 // ─── 成就系统 ───
 async function checkAchievements(userId) {
-  const completedResult = await pool.query('SELECT COUNT(*) as c FROM progress WHERE user_id=$1 AND completed=1', [userId]);
-  const completedCount = parseInt(completedResult.rows[0].c);
-  const xpResult = await pool.query('SELECT COALESCE(SUM(xp),0) as t FROM learning_stats WHERE user_id=$1', [userId]);
-  const totalXp = parseInt(xpResult.rows[0].t);
-  const achievements = [];
-  if (completedCount >= 1) achievements.push({ title: '初学者起步', description: '完成第一节课', icon: '🌱' });
-  if (completedCount >= 5) achievements.push({ title: '勤奋学员', description: '完成5节课', icon: '📚' });
-  if (completedCount >= 20) achievements.push({ title: '学习达人', description: '完成20节课', icon: '🎓' });
-  if (completedCount >= 50) achievements.push({ title: '知识先锋', description: '完成50节课', icon: '⭐' });
-  if (totalXp >= 100) achievements.push({ title: '百分学员', description: '获得100经验值', icon: '✨' });
-  if (totalXp >= 500) achievements.push({ title: '经验大师', description: '获得500经验值', icon: '💎' });
-  for (const a of achievements) {
-    const exists = await pool.query('SELECT id FROM achievements WHERE user_id=$1 AND title=$2', [userId, a.title]);
-    if (exists.rows.length === 0) {
-      await pool.query('INSERT INTO achievements (user_id, title, description, icon) VALUES ($1, $2, $3, $4)',
-        [userId, a.title, a.description, a.icon]);
+  try {
+    const completedResult = await pool.query('SELECT COUNT(*) as c FROM progress WHERE user_id=$1 AND completed=1', [userId]);
+    const completedCount = parseInt(completedResult.rows[0].c) || 0;
+    const xpResult = await pool.query('SELECT COALESCE(SUM(xp),0) as t FROM learning_stats WHERE user_id=$1', [userId]);
+    const totalXp = parseInt(xpResult.rows[0].t) || 0;
+    const achievements = [];
+    if (completedCount >= 1) achievements.push({ title: '初学者起步', description: '完成第一节课', icon: '🌱' });
+    if (completedCount >= 5) achievements.push({ title: '勤奋学员', description: '完成5节课', icon: '📚' });
+    if (completedCount >= 20) achievements.push({ title: '学习达人', description: '完成20节课', icon: '🎓' });
+    if (completedCount >= 50) achievements.push({ title: '知识先锋', description: '完成50节课', icon: '⭐' });
+    if (totalXp >= 100) achievements.push({ title: '百分学员', description: '获得100经验值', icon: '✨' });
+    if (totalXp >= 500) achievements.push({ title: '经验大师', description: '获得500经验值', icon: '💎' });
+    for (const a of achievements) {
+      const exists = await pool.query('SELECT id FROM achievements WHERE user_id=$1 AND title=$2', [userId, a.title]);
+      if (exists.rows.length === 0) {
+        await pool.query('INSERT INTO achievements (user_id, title, description, icon) VALUES ($1, $2, $3, $4)',
+          [userId, a.title, a.description, a.icon]);
+      }
     }
-  }
+  } catch (_) { /* 成就发放不阻塞主流程 */ }
 }
 
-app.get('/api/achievements', authMiddleware, async (req, res) => {
+app.get('/api/achievements', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM achievements WHERE user_id=$1 ORDER BY created_at DESC', [req.user.id]);
     res.json(result.rows);
@@ -486,11 +621,12 @@ app.get('/api/achievements', authMiddleware, async (req, res) => {
 });
 
 // ─── 个性化推荐 ───
-app.get('/api/recommendations', authMiddleware, async (req, res) => {
+app.get('/api/recommendations', authMiddleware, requireDB, async (req, res) => {
   try {
-    const { courses } = require('./data/courses');
+    const courses = loadCourses();
     const userResult = await pool.query('SELECT * FROM users WHERE id=$1', [req.user.id]);
     const user = userResult.rows[0];
+    if (!user) return res.json([]);
     const progressResult = await pool.query('SELECT course_id, lesson_id, completed FROM progress WHERE user_id=$1', [req.user.id]);
     const completedSet = new Set(progressResult.rows.filter(p => p.completed).map(p => `${p.course_id}-${p.lesson_id}`));
     const target = user.target_language;
@@ -499,7 +635,7 @@ app.get('/api/recommendations', authMiddleware, async (req, res) => {
       .filter(c => c.language === target && c.level === level)
       .map(c => ({
         ...c,
-        nextLesson: c.lessons.find(l => !completedSet.has(`${c.id}-${l.id}`)) || c.lessons[0]
+        nextLesson: (c.lessons || []).find(l => !completedSet.has(`${c.id}-${l.id}`)) || (c.lessons && c.lessons[0]) || null
       }));
     res.json(matched);
   } catch (e) {
@@ -508,7 +644,7 @@ app.get('/api/recommendations', authMiddleware, async (req, res) => {
 });
 
 // ─── 社区 ───
-app.post('/api/community/posts', authMiddleware, async (req, res) => {
+app.post('/api/community/posts', authMiddleware, requireDB, async (req, res) => {
   try {
     const { title, content, language } = req.body;
     if (!title || !content) return res.status(400).json({ error: '标题和内容必填' });
@@ -521,6 +657,10 @@ app.post('/api/community/posts', authMiddleware, async (req, res) => {
 });
 
 app.get('/api/community/posts', async (req, res) => {
+  if (!dbReady) {
+    // 降级：不需要登录即可看社区（返回空）
+    return res.json([]);
+  }
   try {
     const result = await pool.query('SELECT p.*, u.username FROM posts p JOIN users u ON p.user_id = u.id ORDER BY p.created_at DESC LIMIT 100');
     res.json(result.rows);
@@ -529,7 +669,7 @@ app.get('/api/community/posts', async (req, res) => {
   }
 });
 
-app.post('/api/community/posts/:id/comments', authMiddleware, async (req, res) => {
+app.post('/api/community/posts/:id/comments', authMiddleware, requireDB, async (req, res) => {
   try {
     const { content } = req.body;
     if (!content) return res.status(400).json({ error: '评论内容不能为空' });
@@ -542,6 +682,7 @@ app.post('/api/community/posts/:id/comments', authMiddleware, async (req, res) =
 });
 
 app.get('/api/community/posts/:id/comments', async (req, res) => {
+  if (!dbReady) return res.json([]);
   try {
     const result = await pool.query('SELECT c.*, u.username FROM comments c JOIN users u ON c.user_id = u.id WHERE c.post_id=$1 ORDER BY c.created_at ASC',
       [req.params.id]);
@@ -552,7 +693,7 @@ app.get('/api/community/posts/:id/comments', async (req, res) => {
 });
 
 // ===================== 入学水平测试 =====================
-app.post('/api/placement/submit', authMiddleware, async (req, res) => {
+app.post('/api/placement/submit', authMiddleware, requireDB, async (req, res) => {
   try {
     const { language, score, recommended_level, answers } = req.body;
     await pool.query(
@@ -566,7 +707,7 @@ app.post('/api/placement/submit', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/placement/status', authMiddleware, async (req, res) => {
+app.get('/api/placement/status', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT placement_done, study_goal, learning_path, level FROM users WHERE id=$1', [req.user.id]);
     res.json(result.rows[0] || { placement_done: 0 });
@@ -575,7 +716,7 @@ app.get('/api/placement/status', authMiddleware, async (req, res) => {
   }
 });
 
-app.put('/api/user/goal', authMiddleware, async (req, res) => {
+app.put('/api/user/goal', authMiddleware, requireDB, async (req, res) => {
   try {
     const { study_goal, learning_path } = req.body;
     const sets = [], params = []; let i = 1;
@@ -592,7 +733,7 @@ app.put('/api/user/goal', authMiddleware, async (req, res) => {
 });
 
 // ===================== 每课随堂测验（解锁机制） =====================
-app.post('/api/lesson-quiz/submit', authMiddleware, async (req, res) => {
+app.post('/api/lesson-quiz/submit', authMiddleware, requireDB, async (req, res) => {
   try {
     const { course_id, lesson_id, score, total } = req.body;
     const passed = score / total >= 0.6 ? 1 : 0;
@@ -600,7 +741,6 @@ app.post('/api/lesson-quiz/submit', authMiddleware, async (req, res) => {
       'INSERT INTO lesson_quiz_attempts (user_id, course_id, lesson_id, score, total, passed) VALUES ($1,$2,$3,$4,$5,$6)',
       [req.user.id, course_id, lesson_id, score, total, passed]
     );
-    // 更新能力分（基于测验类型）
     const abilityKey = ['listening', 'speaking', 'reading', 'writing', 'vocabulary'][Math.floor(Math.random() * 5)];
     await pool.query(
       `INSERT INTO ability_scores (user_id, ${abilityKey}) VALUES ($1, $2)
@@ -608,7 +748,6 @@ app.post('/api/lesson-quiz/submit', authMiddleware, async (req, res) => {
       [req.user.id, Math.max(1, Math.round((score / total) * 5))]
     );
     if (passed) {
-      // 解锁即发放 XP
       const today = new Date().toISOString().slice(0, 10);
       await pool.query(
         `INSERT INTO learning_stats (user_id, study_date, minutes, xp) VALUES ($1, $2, 3, $3)
@@ -625,21 +764,21 @@ app.post('/api/lesson-quiz/submit', authMiddleware, async (req, res) => {
 app.get('/api/lesson-unlock', authMiddleware, async (req, res) => {
   try {
     const { course_id } = req.query;
-    const { courses } = require('./data/courses');
+    const courses = loadCourses();
     const course = courses.find(c => c.id === course_id);
     if (!course) return res.json({ unlocked: [] });
-    // 第一节永远解锁
     const unlocked = [course.lessons[0].id];
-    // 通过该课 quiz 才能解锁下一课
-    const attempts = await pool.query(
-      "SELECT lesson_id FROM lesson_quiz_attempts WHERE user_id=$1 AND course_id=$2 AND passed=1",
-      [req.user.id, course_id]
-    );
-    const passedSet = new Set(attempts.rows.map(r => r.lesson_id));
-    for (let i = 0; i < course.lessons.length; i++) {
-      if (i === 0) continue;
-      if (passedSet.has(course.lessons[i - 1].id)) {
-        unlocked.push(course.lessons[i].id);
+    if (dbReady) {
+      const attempts = await pool.query(
+        "SELECT lesson_id FROM lesson_quiz_attempts WHERE user_id=$1 AND course_id=$2 AND passed=1",
+        [req.user.id, course_id]
+      );
+      const passedSet = new Set(attempts.rows.map(r => r.lesson_id));
+      for (let i = 0; i < course.lessons.length; i++) {
+        if (i === 0) continue;
+        if (passedSet.has(course.lessons[i - 1].id)) {
+          unlocked.push(course.lessons[i].id);
+        }
       }
     }
     res.json({ unlocked });
@@ -649,7 +788,7 @@ app.get('/api/lesson-unlock', authMiddleware, async (req, res) => {
 });
 
 // ===================== 单元综合测验 =====================
-app.post('/api/unit-test/submit', authMiddleware, async (req, res) => {
+app.post('/api/unit-test/submit', authMiddleware, requireDB, async (req, res) => {
   try {
     const { course_id, unit_index, score, total, weak_points } = req.body;
     await pool.query(
@@ -663,7 +802,7 @@ app.post('/api/unit-test/submit', authMiddleware, async (req, res) => {
 });
 
 // ===================== 能力雷达图 =====================
-app.get('/api/ability', authMiddleware, async (req, res) => {
+app.get('/api/ability', authMiddleware, requireDB, async (req, res) => {
   try {
     let result = await pool.query('SELECT * FROM ability_scores WHERE user_id=$1', [req.user.id]);
     if (result.rows.length === 0) {
@@ -677,7 +816,7 @@ app.get('/api/ability', authMiddleware, async (req, res) => {
 });
 
 // ===================== 个性化学习计划 =====================
-app.post('/api/study-plan', authMiddleware, async (req, res) => {
+app.post('/api/study-plan', authMiddleware, requireDB, async (req, res) => {
   try {
     const { goal, target_weeks, weekly_lessons, schedule } = req.body;
     await pool.query('UPDATE study_plans SET active=0 WHERE user_id=$1', [req.user.id]);
@@ -691,7 +830,7 @@ app.post('/api/study-plan', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/study-plan', authMiddleware, async (req, res) => {
+app.get('/api/study-plan', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT * FROM study_plans WHERE user_id=$1 AND active=1 ORDER BY created_at DESC LIMIT 1',
@@ -707,7 +846,7 @@ app.get('/api/study-plan', authMiddleware, async (req, res) => {
 });
 
 // ===================== 继续学习记忆 =====================
-app.post('/api/continue', authMiddleware, async (req, res) => {
+app.post('/api/continue', authMiddleware, requireDB, async (req, res) => {
   try {
     const { course_id, lesson_id } = req.body;
     await pool.query(
@@ -722,7 +861,7 @@ app.post('/api/continue', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/continue', authMiddleware, async (req, res) => {
+app.get('/api/continue', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT course_id, lesson_id, updated_at FROM continue_learning WHERE user_id=$1',
@@ -734,7 +873,7 @@ app.get('/api/continue', authMiddleware, async (req, res) => {
 });
 
 // ===================== 结课证书 =====================
-app.post('/api/certificate/issue', authMiddleware, async (req, res) => {
+app.post('/api/certificate/issue', authMiddleware, requireDB, async (req, res) => {
   try {
     const { course_id, course_title, score } = req.body;
     const today = new Date().toISOString().slice(0, 10);
@@ -750,7 +889,7 @@ app.post('/api/certificate/issue', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/certificates', authMiddleware, async (req, res) => {
+app.get('/api/certificates', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM certificates WHERE user_id=$1 ORDER BY issue_date DESC', [req.user.id]);
     res.json(result.rows);
@@ -759,10 +898,8 @@ app.get('/api/certificates', authMiddleware, async (req, res) => {
   }
 });
 
-// ===================== 课程搜索/筛选（已在前面定义） =====================
-
 // ===================== 薄弱点 =====================
-app.get('/api/weak-points', authMiddleware, async (req, res) => {
+app.get('/api/weak-points', authMiddleware, requireDB, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT lesson_id, weak_points_json FROM unit_test_attempts
@@ -785,7 +922,7 @@ app.get('/api/weak-points', authMiddleware, async (req, res) => {
 });
 
 // ===================== 每日提醒 =====================
-app.get('/api/reminder', authMiddleware, async (req, res) => {
+app.get('/api/reminder', authMiddleware, requireDB, async (req, res) => {
   try {
     let result = await pool.query('SELECT * FROM reminder_settings WHERE user_id=$1', [req.user.id]);
     if (result.rows.length === 0) {
@@ -798,7 +935,7 @@ app.get('/api/reminder', authMiddleware, async (req, res) => {
   }
 });
 
-app.put('/api/reminder', authMiddleware, async (req, res) => {
+app.put('/api/reminder', authMiddleware, requireDB, async (req, res) => {
   try {
     const { enabled, time, channel } = req.body;
     await pool.query(
@@ -813,7 +950,7 @@ app.put('/api/reminder', authMiddleware, async (req, res) => {
 });
 
 // ===================== 学习报告 =====================
-app.get('/api/report/monthly', authMiddleware, async (req, res) => {
+app.get('/api/report/monthly', authMiddleware, requireDB, async (req, res) => {
   try {
     const stats = await pool.query(
       'SELECT * FROM learning_stats WHERE user_id=$1 ORDER BY study_date DESC LIMIT 30',
@@ -846,13 +983,22 @@ app.get('*', (req, res) => {
     return res.status(404).json({ error: 'API 路由不存在', path: req.path });
   }
   const candidates = [
-    path.join(PUBLIC_DIR, 'index.html'),
-    path.join(ROOT_DIR, 'public', 'index.html'),
-    path.join(ROOT_DIR, 'index.html')
-  ];
-  const target = candidates.find(f => fs.existsSync(f));
-  if (target) return res.sendFile(target);
-  res.status(404).send('LinguaEdu: index.html not found. Please verify deployment structure.');
+    PUBLIC_DIR ? path.join(PUBLIC_DIR, req.path) : null,
+    path.join(ROOT_DIR, 'public', req.path),
+    path.join(ROOT_DIR, req.path)
+  ].filter(Boolean);
+  // 首先尝试真实文件
+  for (const c of candidates) {
+    try {
+      if (fs.existsSync(c) && fs.statSync(c).isFile()) {
+        return res.sendFile(c);
+      }
+    } catch (_) {}
+  }
+  // 否则返回主应用 index.html 交给前端路由
+  const idx = resolveIndexHtml();
+  if (idx) return res.sendFile(idx);
+  res.status(404).send('LinguaEdu: 页面不存在，且未找到 index.html 主应用入口文件。请检查部署结构。');
 });
 
 // ─── 启动（任何情况下都尝试启动，确保网站至少能访问静态内容） ───
@@ -867,15 +1013,25 @@ async function startServer() {
     dbReady = false;
     dbError = err.message;
   }
+
+  // 启动前预加载一次课程（提前暴露语法错误）
+  try {
+    const n = loadCourses().length;
+    console.log(`📘 预加载课程数据：${n} 门课程`);
+  } catch (e) {
+    console.error('❌ 课程数据预加载失败：', e.message);
+  }
+
   app.listen(PORT, () => {
     console.log('');
     console.log('╔══════════════════════════════════════════════════════════════╗');
     console.log('║            🌐 LinguaEdu Platform 启动成功                    ║');
     console.log('╠══════════════════════════════════════════════════════════════╣');
-    console.log(`║  📍 访问地址:   http://localhost:${PORT}`.padEnd(61) + '║');
-    console.log(`║  💾 数据库:     ${dbReady ? '✅ PostgreSQL 已连接' : '⚠️  降级模式（未配置 DATABASE_URL）'}`.padEnd(61) + '║');
-    console.log(`║  📘 考试指南:   http://localhost:${PORT}/guide.html`.padEnd(61) + '║');
-    console.log(`║  📋 备考规划:   http://localhost:${PORT}/plan.html`.padEnd(61) + '║');
+    console.log(`║  📍 访问地址:   http://localhost:${PORT}`.padEnd(62) + '║');
+    console.log(`║  💾 数据库:     ${dbReady ? '✅ PostgreSQL 已连接' : '⚠️  降级模式（未配置 DATABASE_URL）'}`.padEnd(62) + '║');
+    console.log(`║  📂 静态目录:   ${PUBLIC_DIR || '⚠️  未找到，使用显式路由兜底'}`.padEnd(62) + '║');
+    console.log(`║  📘 考试指南:   http://localhost:${PORT}/guide.html`.padEnd(62) + '║');
+    console.log(`║  📋 备考规划:   http://localhost:${PORT}/plan.html`.padEnd(62) + '║');
     if (!dbReady) {
       console.log('║                                                              ║');
       console.log('║  提示：注册/登录/进度/社区功能需 PostgreSQL，配置方法见 README  ║');
