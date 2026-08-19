@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LinguaEdu · 备考规划方案</title>
+  <meta name="description" content="从零基础到通关的三阶段备考方案：3-12个月分级计划、在职党碎片时间利用法、每日2小时示范日程、6大误区规避。" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif; }
+    .fade-in { animation: fadeIn 0.4s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .glass { backdrop-filter: blur(12px); background: rgba(255,255,255,0.7); }
+    .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .card-hover { transition: all 0.3s ease; }
+    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-slate-50 to-indigo-50 min-h-screen">
+  <!-- 导航栏 -->
+  <nav class="glass sticky top-0 z-50 border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-3 cursor-pointer">
+        <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center text-white font-bold text-xl">L</div>
+        <div>
+          <div class="font-bold text-slate-800 text-lg">LinguaEdu</div>
+          <div class="text-xs text-slate-500 -mt-1">沉浸式语言学习</div>
+        </div>
+      </a>
+      <div class="hidden md:flex items-center gap-1">
+        <a href="index.html" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">首页</a>
+        <a href="index.html#/courses" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">课程中心</a>
+        <a href="guide.html" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">考试指南</a>
+        <a href="plan.html" class="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-100 text-indigo-700">备考规划</a>
+        <a href="index.html#/live" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">直播</a>
+        <a href="index.html#/community" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">社区</a>
+      </div>
+      <div class="flex items-center gap-2">
+        <a href="index.html#/login" class="px-4 py-2 text-sm font-medium text-slate-700 hover:text-indigo-600">登录</a>
+        <a href="index.html#/register" class="px-4 py-2 text-sm font-medium text-white gradient-bg rounded-lg hover:opacity-90">免费注册</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-7xl mx-auto px-4 py-8 fade-in">
+    <!-- Hero -->
+    <section class="py-10 md:py-14 text-center bg-white rounded-3xl shadow-sm mb-10">
+      <div class="inline-block px-4 py-1.5 bg-amber-100 text-amber-700 rounded-full text-sm font-medium mb-5">
+        <i class="fas fa-calendar-check mr-1"></i> 个性化备考方案
+      </div>
+      <h1 class="text-3xl md:text-5xl font-extrabold text-slate-900 mb-5 leading-tight">
+        从零基础到<span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">通关考试</span><br/>三阶段通用学习路径
+      </h1>
+      <p class="text-lg text-slate-600 max-w-3xl mx-auto px-4">
+        本方案适用于英语 CEFR B2 / 日语 N2 / 韩语 TOPIK 4 / 法语 B2 等中高级考试，3–12 个月通用路径，根据目标级别灵活调整。
+      </p>
+    </section>
+
+    <!-- 考试目标选择 -->
+    <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10">
+      <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-blue-100 card-hover">
+        <div class="text-4xl mb-2">🇬🇧</div>
+        <div class="font-bold text-slate-900 mb-1">雅思 6.5+</div>
+        <div class="text-xs text-slate-500">推荐周期：4–6 个月<br/>（起点四级及格）</div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-pink-100 card-hover">
+        <div class="text-4xl mb-2">🇯🇵</div>
+        <div class="font-bold text-slate-900 mb-1">JLPT N2 / N1</div>
+        <div class="text-xs text-slate-500">N2 6–9 个月<br/>N1 12–18 个月（零基础）</div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-purple-100 card-hover">
+        <div class="text-4xl mb-2">🇰🇷</div>
+        <div class="font-bold text-slate-900 mb-1">TOPIK 4 / 5 级</div>
+        <div class="text-xs text-slate-500">TOPIK 4 约 8 个月<br/>TOPIK 5 约 12 个月</div>
+      </div>
+      <div class="bg-white rounded-2xl p-5 text-center shadow-sm border border-rose-100 card-hover">
+        <div class="text-4xl mb-2">🇪🇺</div>
+        <div class="font-bold text-slate-900 mb-1">欧语 B2 / C1</div>
+        <div class="text-xs text-slate-500">法德西通用<br/>零基础 → B2 需 9–12 个月</div>
+      </div>
+    </section>
+
+    <!-- 六大误区 -->
+    <section class="bg-gradient-to-r from-rose-500 to-pink-600 rounded-3xl shadow-lg p-8 text-white mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6"><i class="fas fa-triangle-exclamation mr-2"></i> 备考最常见的 6 大误区（千万别踩！）</h2>
+      <div class="grid md:grid-cols-3 gap-4 text-sm">
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+          <div class="text-xl mb-2">❌ 误区 1："先把单词全背完再做题"</div>
+          <p class="opacity-90">正确做法：单词+真题 1:1 并行。纯背单词书遗忘率高达 80%；真题语境中背过的词留存率高 3 倍。</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+          <div class="text-xl mb-2">❌ 误区 2："语法只看课不练"</div>
+          <p class="opacity-90">正确做法：每学 1 个语法点，配套 20 道练习题 + 3 句自造句。不输出就不算"会"。</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+          <div class="text-xl mb-2">❌ 误区 3："听力最后两周突击"</div>
+          <p class="opacity-90">正确做法：听力是所有单项中进步最慢的，需要 2–3 个月以上的持续输入，考前突击几乎无效。</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+          <div class="text-xl mb-2">❌ 误区 4："口语考试背万能模板"</div>
+          <p class="opacity-90">正确做法：模板只能打底，TOPIK/JLPT/雅思考官都反感背诵感。用 20 个通用话题 + 个人真实素材改编。</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+          <div class="text-xl mb-2">❌ 误区 5："每天学 8 小时，考前突击一个月"</div>
+          <p class="opacity-90">正确做法：语言是累积型技能，每天 2 小时 × 6 个月 ≫ 每天 8 小时 × 1 个月，分散练习效果更好。</p>
+        </div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">
+          <div class="text-xl mb-2">❌ 误区 6："不做整套模拟直接上考场"</div>
+          <p class="opacity-90">正确做法：考前至少 2 次完整计时模考（含涂卡、写作手写），否则 80% 的人做不完。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 三阶段方案 -->
+    <section class="bg-white rounded-3xl shadow-sm p-8 mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <i class="fas fa-road text-indigo-600"></i> 三阶段通关通用方案
+      </h2>
+
+      <!-- Phase 1 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">1</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900">基础夯实期（占总时长 50%）</h3>
+            <p class="text-slate-500 text-sm">目标：搭建词汇 & 语法骨架，扫清所有"看不懂"的障碍</p>
+          </div>
+        </div>
+        <div class="bg-green-50 rounded-2xl p-6 grid md:grid-cols-3 gap-6 text-sm">
+          <div>
+            <h4 class="font-bold text-slate-900 mb-2 text-green-700"><i class="fas fa-tasks mr-1"></i> 核心任务</h4>
+            <ul class="space-y-2 text-slate-700">
+              <li>• 刷完目标级别核心词汇书 1 遍（英语 3500 / 日语 N2 6000 / 韩 4 级 3500）</li>
+              <li>• 系统学完对应级别语法教材（蓝宝书/红宝书/Grammar in Use）</li>
+              <li>• 每学完 1 单元 → 对应小测 20 题</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 mb-2 text-green-700"><i class="fas fa-clock mr-1"></i> 时间分配</h4>
+            <ul class="space-y-2 text-slate-700">
+              <li>• 单词：40%</li>
+              <li>• 语法：40%</li>
+              <li>• 听力+阅读输入：20%</li>
+            </ul>
+            <p class="mt-3 text-xs text-slate-500">在职党每天 1.5–2h / 全职备考 4–5h</p>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 mb-2 text-green-700"><i class="fas fa-book mr-1"></i> 配套资源</h4>
+            <ul class="space-y-2 text-slate-700">
+              <li>• LinguaEdu 分级词汇卡（内置间隔重复）</li>
+              <li>• 对应专项语法课 → 直播老师答疑</li>
+              <li>• 每日泛听：NHK / BBC / KBS News 慢速</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 2 -->
+      <div class="mb-8">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">2</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900">专项突破期（占总时长 35%）</h3>
+            <p class="text-slate-500 text-sm">目标：按单项（听/说/读/写/词汇语法）逐个击破，正确率从 40% → 75%+</p>
+          </div>
+        </div>
+        <div class="bg-blue-50 rounded-2xl p-6 grid md:grid-cols-4 gap-4 text-sm">
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h4 class="font-bold text-indigo-700 mb-2">📖 阅读</h4>
+            <p class="text-slate-700">每周至少 5 套真题阅读 → 错题逐句精读 → 生词+长难句摘抄。目标正确率 75%+。</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h4 class="font-bold text-indigo-700 mb-2">🎧 听力</h4>
+            <p class="text-slate-700">真题听力精听（逐句听写）+ 场景词汇背诵（机场/餐厅/办公室/校园）。目标正确率 70%+。</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h4 class="font-bold text-indigo-700 mb-2">✍️ 写作</h4>
+            <p class="text-slate-700">每周 2 篇完整作文 + 老师/AI 批改。背 10 篇范文框架，总结 20 个万能衔接句。</p>
+          </div>
+          <div class="bg-white rounded-xl p-4 shadow-sm">
+            <h4 class="font-bold text-indigo-700 mb-2">🗣️ 口语</h4>
+            <p class="text-slate-700">LinguaEdu 社区找语伴，每周 3 次 × 30 分钟。准备 20 个常见话题的个人素材（家庭/旅行/工作/学习）。</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phase 3 -->
+      <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-rose-500 to-fuchsia-600 text-white flex items-center justify-center text-2xl font-bold shadow-lg">3</div>
+          <div>
+            <h3 class="text-xl font-bold text-slate-900">冲刺模考期（占总时长 15%，考前 2–3 周）</h3>
+            <p class="text-slate-500 text-sm">目标：形成做题节奏，稳定发挥；查漏补缺最后一公里</p>
+          </div>
+        </div>
+        <div class="bg-rose-50 rounded-2xl p-6 grid md:grid-cols-2 gap-6 text-sm">
+          <div>
+            <h4 class="font-bold text-slate-900 mb-2 text-rose-700"><i class="fas fa-file-circle-check mr-1"></i> 每周 3 次完整模考</h4>
+            <ul class="space-y-1 text-slate-700">
+              <li>• 严格计时（含填涂答题卡时间预留 10 分钟）</li>
+              <li>• 固定同一时段（尽量与真实考试时间一致）</li>
+              <li>• 每次模考后：错误分类统计（词汇类 / 语法类 / 审题失误 / 时间不够）</li>
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-900 mb-2 text-rose-700"><i class="fas fa-sparkles mr-1"></i> 错题本 + 考前佛脚</h4>
+            <ul class="space-y-1 text-slate-700">
+              <li>• 前 10 天：薄弱单项集中加练（听力差就每天加 1 套精听）</li>
+              <li>• 前 3 天：只复习"错题本 + 核心高频词 + 写作模板"</li>
+              <li>• 考前一天：不做新题，检查证件/文具/路线，早睡</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 每日2小时示范 -->
+    <section class="bg-white rounded-3xl shadow-sm p-8 mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <i class="fas fa-hourglass-half text-amber-500"></i> 在职党每日 2 小时示范日程（工作日）
+      </h2>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div class="space-y-3">
+          <div class="flex gap-4 items-start">
+            <div class="flex-shrink-0 w-20 text-right">
+              <div class="font-bold text-indigo-700">07:00–07:30</div>
+              <div class="text-xs text-slate-400">30 分钟</div>
+            </div>
+            <div class="bg-gradient-to-r from-emerald-50 to-teal-100 rounded-xl p-4 flex-1">
+              <div class="font-semibold text-slate-900">🌅 晨间输入（单词 + 泛听）</div>
+              <div class="text-sm text-slate-600 mt-1">通勤或早餐时用 LinguaEdu 词汇卡，每日 50 新词 + 复习昨日。背景音播放 NHK/BBC 慢速。</div>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start">
+            <div class="flex-shrink-0 w-20 text-right">
+              <div class="font-bold text-indigo-700">12:30–13:00</div>
+              <div class="text-xs text-slate-400">30 分钟</div>
+            </div>
+            <div class="bg-gradient-to-r from-sky-50 to-blue-100 rounded-xl p-4 flex-1">
+              <div class="font-semibold text-slate-900">🍱 午间碎片（阅读 1 篇）</div>
+              <div class="text-sm text-slate-600 mt-1">真题阅读 1 篇掐时间做完（约 10 min），再逐句精读。</div>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start">
+            <div class="flex-shrink-0 w-20 text-right">
+              <div class="font-bold text-indigo-700">20:00–21:00</div>
+              <div class="text-xs text-slate-400">60 分钟</div>
+            </div>
+            <div class="bg-gradient-to-r from-violet-50 to-purple-100 rounded-xl p-4 flex-1">
+              <div class="font-semibold text-slate-900">🌙 晚间主攻（语法 + 听力精听）</div>
+              <div class="text-sm text-slate-600 mt-1">30 min 语法网课+习题 + 30 min 听力精听（1 段真题对话反复 5 遍直到全听懂）。</div>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start">
+            <div class="flex-shrink-0 w-20 text-right">
+              <div class="font-bold text-indigo-700">22:00–22:30</div>
+              <div class="text-xs text-slate-400">30 分钟</div>
+            </div>
+            <div class="bg-gradient-to-r from-amber-50 to-yellow-100 rounded-xl p-4 flex-1">
+              <div class="font-semibold text-slate-900">🛌 睡前复盘（复习今日词汇）</div>
+              <div class="text-sm text-slate-600 mt-1">用 LinguaEdu 的 SRS 复习模式，20 分钟过今日单词+语法笔记，10 分钟看 1 集目标语短剧。</div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-gradient-to-br from-amber-50 to-orange-100 rounded-2xl p-6 h-fit">
+          <h3 class="font-bold text-slate-900 text-lg mb-4"><i class="fas fa-sun text-orange-500 mr-1"></i> 周末（6–8 小时 / 天）</h3>
+          <ul class="space-y-3 text-sm text-slate-700">
+            <li>• <strong>上午 3h：</strong>1 套完整真题模考（严格计时），中间不看手机不暂停 → 1h 对答案整理错题</li>
+            <li>• <strong>下午 2h：</strong>薄弱单项专项突破（比如语法薄弱就 30 道同类题集中练）</li>
+            <li>• <strong>晚上 1–2h：</strong>口语练习 + 社区语伴 30 min + 写作 1 篇</li>
+            <li>• <strong>周日晚：</strong>本周复盘，填写学习报告（LinguaEdu 自动生成雷达图），下周计划微调</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 工具推荐 -->
+    <section class="bg-white rounded-3xl shadow-sm p-8 mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <i class="fas fa-toolbox text-blue-600"></i> 高效备考工具与资源推荐
+      </h2>
+      <div class="grid md:grid-cols-4 gap-4 text-sm">
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-blue-50 to-indigo-100 card-hover">
+          <div class="text-3xl mb-2">📚</div>
+          <h3 class="font-bold text-slate-900 mb-1">词汇背诵</h3>
+          <p class="text-slate-600">LinguaEdu 单词卡（SRS 间隔重复）/ Anki / 百词斩 / MOJi 辞书（日语）</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-pink-50 to-rose-100 card-hover">
+          <div class="text-3xl mb-2">🎧</div>
+          <h3 class="font-bold text-slate-900 mb-1">听力输入</h3>
+          <p class="text-slate-600">BBC Learning English / NHK NEWS WEB EASY / KBS 뉴스 / Spotify 播客</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-emerald-50 to-teal-100 card-hover">
+          <div class="text-3xl mb-2">✍️</div>
+          <h3 class="font-bold text-slate-900 mb-1">写作批改</h3>
+          <p class="text-slate-600">Grammarly（英）/ DeepL Write / LinguaEdu AI 写作评分 / 社区互助批改</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-purple-50 to-violet-100 card-hover">
+          <div class="text-3xl mb-2">🗣️</div>
+          <h3 class="font-bold text-slate-900 mb-1">口语搭档</h3>
+          <p class="text-slate-600">LinguaEdu 社区语伴广场 / HelloTalk / Tandem / iTalki 付费外教</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-amber-50 to-orange-100 card-hover">
+          <div class="text-3xl mb-2">📝</div>
+          <h3 class="font-bold text-slate-900 mb-1">真题资源</h3>
+          <p class="text-slate-600">JLPT 历年真题 / TOPIK 官方真题集 / 剑桥雅思 / LinguaEdu 真题下载区</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-sky-50 to-cyan-100 card-hover">
+          <div class="text-3xl mb-2">🖥️</div>
+          <h3 class="font-bold text-slate-900 mb-1">在线模考</h3>
+          <p class="text-slate-600">LinguaEdu 单元测试功能 / IELTS Official / TOPIK Online Mock Test</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-red-50 to-pink-100 card-hover">
+          <div class="text-3xl mb-2">📓</div>
+          <h3 class="font-bold text-slate-900 mb-1">错题本</h3>
+          <p class="text-slate-600">Notion / Obsidian 自建数据库 / LinguaEdu 自动记录错题 + 知识点标签</p>
+        </div>
+        <div class="rounded-2xl p-5 bg-gradient-to-br from-fuchsia-50 to-purple-100 card-hover">
+          <div class="text-3xl mb-2">⏰</div>
+          <h3 class="font-bold text-slate-900 mb-1">专注计时</h3>
+          <p class="text-slate-600">Forest / 番茄 ToDo / LinguaEdu 学习提醒 + 学习时长打卡</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 快速提分策略 -->
+    <section class="bg-gradient-to-r from-indigo-600 to-purple-700 rounded-3xl shadow-lg p-8 text-white mb-10">
+      <h2 class="text-2xl md:text-3xl font-bold mb-6"><i class="fas fa-bolt mr-2"></i> 冲刺阶段快速提分 8 大招</h2>
+      <div class="grid md:grid-cols-2 gap-4 text-sm">
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>抓大放小：</strong>先攻克高频词汇和常考语法（覆盖 60% 考点），偏难怪题考前 1 周直接放弃。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>时间换分：</strong>做题顺序从强项开始（先把稳拿的分装进篮子），最后 5 分钟涂卡要做"留白检查"。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>听力技巧：</strong>播放前先读选项并画出关键词，边听边涂卡（别全写试卷上，来不及誊）。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>阅读扫读：</strong>先读题干再读段落，圈定位词（专有名词/数字/引号词），别一字一句翻译。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>作文保底：</strong>开头结尾用高级连接词（however/additionally/consequently），写错字轻轻划一道别涂黑块。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>口语自然：</strong>卡壳就用 fillers 过渡（well / actually / that's a good question），沉默扣分更严重。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>错题回炉：</strong>把最后 3 套模考的错题按"知识点"重分类，哪个语法点错 3 次以上就立刻找对应网课补课。</div>
+        <div class="bg-white/10 backdrop-blur rounded-2xl p-5">💡 <strong>心态稳定：</strong>模考目标分数 × 0.9 = 真实考场分数（考场紧张会扣 10%）。模考稳定超标 10% 才算稳妥。</div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="text-center mb-10">
+      <div class="inline-block bg-white rounded-3xl shadow-sm p-8 max-w-2xl">
+        <h2 class="text-2xl font-bold text-slate-900 mb-3">定制你的专属备考计划</h2>
+        <p class="text-slate-600 mb-5">登录 LinguaEdu，先完成 10 分钟免费水平测试 → AI 根据目标考试、当前水平、可投入时长自动生成每日任务清单。</p>
+        <a href="index.html#/placement" class="inline-block px-8 py-3 gradient-bg text-white font-semibold rounded-xl hover:opacity-90 shadow-lg mr-3">
+          📝 立即测水平
+        </a>
+        <a href="index.html#/studyplan" class="inline-block px-8 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:border-indigo-400">
+          📋 生成学习计划
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-slate-200 bg-white/50">
+    <div class="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-slate-500">
+      <div class="mb-2 font-bold text-slate-700">🌍 LinguaEdu · 让世界语言触手可及</div>
+      <div>© 2026 LinguaEdu Platform · 支持 英语 CEFR / 日语 JLPT / 韩语 TOPIK / 法德西 B2-C1 全体系备考</div>
+    </div>
+  </footer>
+</body>
+</html>

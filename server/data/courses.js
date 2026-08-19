@@ -1113,28 +1113,1242 @@ const courses = [
         ]
       }
     ]
+  },
+  // ===================== 法语 =====================
+  {
+    id: 'fr-beginner',
+    language: 'fr',
+    languageName: '法语',
+    level: 'beginner',
+    levelName: '入门级',
+    title: '法语零基础入门',
+    description: '从发音规则和 Bonjour 问候开始，踏上浪漫法语之旅，对标 CEFR A1',
+    cover: '🇫🇷',
+    color: 'from-blue-400 via-white to-red-400',
+    lessons: [
+      {
+        id: 'fr-b-1', title: '法语字母与发音', type: 'pronunciation', duration: 20,
+        vocabulary: [
+          { word: 'Bonjour', translation: '你好', phonetic: '/bɔ̃ʒuʁ/' },
+          { word: 'Merci', translation: '谢谢', phonetic: '/mɛʁsi/' },
+          { word: 'Salut', translation: '嗨（非正式）', phonetic: '/saly/' },
+          { word: 'Oui', translation: '是', phonetic: '/wi/' },
+          { word: 'Non', translation: '不', phonetic: '/nɔ̃/' },
+          { word: 'Au revoir', translation: '再见', phonetic: '/o ʁəvwaʁ/' }
+        ],
+        grammar: { title: '名词阴阳性 (le / la)', examples: ['le livre 书（阳性）', 'la table 桌子（阴性）', "l'école 学校（元音前）"] },
+        dialogue: [
+          { fr: 'Bonjour ! Comment ça va ?', zh: '你好！最近如何？' },
+          { fr: 'Ça va bien, merci ! Et toi ?', zh: '很好，谢谢！你呢？' },
+          { fr: 'Moi aussi, merci. Au revoir !', zh: '我也是，谢谢。再见！' }
+        ]
+      },
+      {
+        id: 'fr-b-2', title: '自我介绍与家庭', type: 'conversation', duration: 22,
+        vocabulary: [
+          { word: 'Je m\'appelle', translation: '我叫', phonetic: '' },
+          { word: 'famille', translation: '家庭', phonetic: '' },
+          { word: 'père / mère', translation: '父 / 母', phonetic: '' },
+          { word: 'frère / sœur', translation: '兄弟 / 姐妹', phonetic: '' },
+          { word: 'habiter', translation: '居住', phonetic: '' },
+          { word: 'travailler', translation: '工作', phonetic: '' }
+        ],
+        grammar: { title: '第一组动词 -er 变位（现在时）', examples: ['j\'habite 我住', 'tu travailles 你工作', 'il parle 他说'] },
+        dialogue: [
+          { fr: 'Bonjour, je m\'appelle Marie.', zh: '你好，我叫玛丽。' },
+          { fr: 'Enchanté, je m\'appelle Paul. Tu habites à Paris ?', zh: '很高兴认识你，我叫保罗。你住在巴黎吗？' },
+          { fr: 'Oui, j\'habite avec ma famille.', zh: '是的，我和家人一起住。' }
+        ]
+      },
+      {
+        id: 'fr-b-3', title: '数字、时间与点餐', type: 'numbers', duration: 25,
+        vocabulary: [
+          { word: 'un / deux / trois', translation: '一 / 二 / 三', phonetic: '' },
+          { word: 'dix / vingt / cent', translation: '十 / 二十 / 一百', phonetic: '' },
+          { word: 'maintenant', translation: '现在', phonetic: '' },
+          { word: 'café', translation: '咖啡', phonetic: '' },
+          { word: 'croissant', translation: '可颂', phonetic: '' },
+          { word: 'menu', translation: '菜单', phonetic: '' }
+        ],
+        grammar: { title: '时间表达法', examples: ['Quelle heure est-il ? 几点了？', 'Il est 9 heures. 现在九点', 'à midi / à minuit 在正午/午夜'] },
+        dialogue: [
+          { fr: 'Je voudrais un café et un croissant, s\'il vous plaît.', zh: '请给我一杯咖啡和一个可颂。' },
+          { fr: 'C\'est tout ?', zh: '就这些吗？' },
+          { fr: 'Oui, merci. Ça fait combien ?', zh: '是的，谢谢。多少钱？' }
+        ]
+      },
+      {
+        id: 'fr-b-4', title: '旅行场景：问路与酒店', type: 'scenario', duration: 28,
+        vocabulary: [
+          { word: 'hôtel', translation: '酒店', phonetic: '' },
+          { word: 'réservation', translation: '预订', phonetic: '' },
+          { word: 'où est', translation: '在哪里', phonetic: '' },
+          { word: 'à gauche / à droite', translation: '左 / 右', phonetic: '' },
+          { word: 'tout droit', translation: '直走', phonetic: '' },
+          { word: 'métro', translation: '地铁', phonetic: '' }
+        ],
+        grammar: { title: '方位介词', examples: ['près de 靠近', 'loin de 远离', 'en face de 对面', 'à côté de 旁边'] },
+        dialogue: [
+          { fr: 'Excusez-moi, où est le métro ?', zh: '对不起，请问地铁在哪里？' },
+          { fr: 'Tout droit, puis à gauche.', zh: '直走，然后左转。' },
+          { fr: 'Merci beaucoup !', zh: '非常感谢！' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'fr-intermediate',
+    language: 'fr',
+    languageName: '法语',
+    level: 'intermediate',
+    levelName: '进阶级',
+    title: '法语进阶：日常与职业',
+    description: '深入语法与表达，覆盖工作、健康、文化场景，对标 CEFR B1',
+    cover: '🥖',
+    color: 'from-blue-500 to-indigo-500',
+    lessons: [
+      {
+        id: 'fr-i-1', title: '复合过去时 raconter sa journée', type: 'grammar', duration: 30,
+        vocabulary: [
+          { word: 'avoir / être', translation: '有 / 是（助动词）', phonetic: '' },
+          { word: 'parti / allé', translation: '出发 / 去', phonetic: '' },
+          { word: 'acheter', translation: '购买', phonetic: '' },
+          { word: 'écrire', translation: '写', phonetic: '' }
+        ],
+        grammar: { title: 'Passé composé 复合过去时', examples: ['J\'ai mangé une pomme.', 'Elle est allée au cinéma.', 'Nous avons terminé le travail.'] },
+        dialogue: [
+          { fr: 'Qu\'as-tu fait hier soir ?', zh: '你昨晚做了什么？' },
+          { fr: 'J\'ai regardé un film français, puis j\'ai lu un livre.', zh: '我看了一部法国电影，然后读了一本书。' }
+        ]
+      },
+      {
+        id: 'fr-i-2', title: '职场法语：电话与会议', type: 'business', duration: 28,
+        vocabulary: [
+          { word: 'réunion', translation: '会议', phonetic: '' },
+          { word: 'décision', translation: '决定', phonetic: '' },
+          { word: 'contrat', translation: '合同', phonetic: '' },
+          { word: 'partenaire', translation: '合作伙伴', phonetic: '' }
+        ],
+        grammar: { title: '条件式现在时 (politesse)', examples: ['Pourriez-vous...? 您能否……？', 'Je voudrais... 我想要……', 'Il faudrait... 应该……'] },
+        dialogue: [
+          { fr: 'Allô, c\'est Philippe de la société ABC. Est-ce que je peux parler à M. Durand ?', zh: '您好，这里是ABC公司的菲利普。我可以和杜朗先生讲话吗？' },
+          { fr: 'Bien sûr, je vous le passe.', zh: '当然，我给您转接。' }
+        ]
+      },
+      {
+        id: 'fr-i-3', title: '法国文化：美食与节日', type: 'culture', duration: 25,
+        vocabulary: [
+          { word: 'fromage', translation: '奶酪', phonetic: '' },
+          { word: 'vin', translation: '葡萄酒', phonetic: '' },
+          { word: 'fête nationale', translation: '国庆（7月14日）', phonetic: '' },
+          { word: 'Noël', translation: '圣诞节', phonetic: '' }
+        ],
+        grammar: { title: '未完成过去时 (imparfait) 描述', examples: ['Quand j\'étais petit, je vivais à Lyon.', 'Il faisait beau ce jour-là.'] },
+        dialogue: [
+          { fr: 'Tu as déjà goûté le fromage français ?', zh: '你吃过法国奶酪吗？' },
+          { fr: 'Oui, j\'adore le brie et le camembert !', zh: '是的，我非常喜欢布里和卡芒贝尔！' }
+        ]
+      },
+      {
+        id: 'fr-i-4', title: '观点表达与讨论', type: 'speaking', duration: 30,
+        vocabulary: [
+          { word: 'à mon avis', translation: '在我看来', phonetic: '' },
+          { word: 'je pense que', translation: '我认为', phonetic: '' },
+          { word: 'bien sûr', translation: '当然', phonetic: '' },
+          { word: 'cependant', translation: '然而', phonetic: '' }
+        ],
+        grammar: { title: '虚拟式现在时入门', examples: ['Il faut que tu viennes.', 'Je veux que tu sois heureux.'] },
+        dialogue: [
+          { fr: 'À ton avis, faut-il apprendre plusieurs langues ?', zh: '在你看来，我们应该学多门语言吗？' },
+          { fr: 'Bien sûr, ça ouvre l\'esprit ! Cependant, il faut beaucoup de temps.', zh: '当然，它打开视野！不过需要很多时间。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'fr-advanced',
+    language: 'fr',
+    languageName: '法语',
+    level: 'advanced',
+    levelName: '高阶级',
+    title: '法语高级：文学、媒体与思辨',
+    description: '文学赏析、新闻媒体与高阶写作，对标 CEFR C1，备战 DELF/DALF',
+    cover: '🗼',
+    color: 'from-indigo-600 to-purple-600',
+    lessons: [
+      {
+        id: 'fr-a-1', title: '文学赏析：小王子节选', type: 'culture', duration: 35,
+        vocabulary: [
+          { word: 'renard', translation: '狐狸', phonetic: '' },
+          { word: 'apprivoiser', translation: '驯养', phonetic: '' },
+          { word: 'essentiel', translation: '本质的', phonetic: '' },
+          { word: 'invisible', translation: '看不见的', phonetic: '' }
+        ],
+        grammar: { title: '先过去时 & 过去的将来', examples: ['Il avait fini avant qu\'elle ne parte.', 'Il a dit qu\'il reviendrait.'] },
+        dialogue: [
+          { fr: 'Tu deviens responsable pour toujours de ce que tu as apprivoisé.', zh: '你对你驯养过的事物永远有责任。' },
+          { fr: 'On ne voit bien qu\'avec le cœur. L\'essentiel est invisible pour les yeux.', zh: '只有用心才能看清事物的本质，肉眼是看不见的。' }
+        ]
+      },
+      {
+        id: 'fr-a-2', title: '新闻媒体：Le Monde 社论', type: 'writing', duration: 35,
+        vocabulary: [
+          { word: 'climatique', translation: '气候的', phonetic: '' },
+          { word: 'société', translation: '社会', phonetic: '' },
+          { word: 'argumentation', translation: '论证', phonetic: '' },
+          { word: 'émission', translation: '排放', phonetic: '' }
+        ],
+        grammar: { title: '论文写作：引入 / 发展 / 结论', examples: ['Tout d\'abord... De plus... Enfin...', 'Cependant... Ainsi... Par conséquent...'] },
+        dialogue: [
+          { fr: 'Selon vous, quel est le plus grand défi de notre époque ?', zh: '你认为我们时代最大的挑战是什么？' },
+          { fr: 'Sans conteste, le changement climatique et la transition écologique.', zh: '毫无疑问，气候变化和生态转型。' }
+        ]
+      },
+      {
+        id: 'fr-a-3', title: 'DELF B2 / DALF C1 写作技巧', type: 'writing', duration: 35,
+        vocabulary: [
+          { word: 'thèse / antithèse / synthèse', translation: '正 / 反 / 合（辩证写作）', phonetic: '' },
+          { word: 'plan détaillé', translation: '详细大纲', phonetic: '' },
+          { word: 'introduction', translation: '引言', phonetic: '' },
+          { word: 'conclusion', translation: '结语', phonetic: '' }
+        ],
+        grammar: { title: '连接词与论述结构', examples: ['Premièrement... Deuxièmement... Pour conclure', 'En dépit de... En raison de... Grâce à...'] },
+        dialogue: [
+          { fr: 'Comment structurer une dissertation de 500 mots ?', zh: '如何组织一篇500字的论述文？' },
+          { fr: 'Introduction → Plan en 2 parties → Conclusion : c\'est la base du DELF B2.', zh: '引言 → 两部分展开 → 结论：这是DELF B2的基础。' }
+        ]
+      },
+      {
+        id: 'fr-a-4', title: 'DELF B2 口语辩论模拟', type: 'speaking', duration: 40,
+        vocabulary: [
+          { word: 'débattre', translation: '辩论', phonetic: '' },
+          { word: 'pour / contre', translation: '支持 / 反对', phonetic: '' },
+          { word: 'réfuter', translation: '反驳', phonetic: '' },
+          { word: 'argument', translation: '论据', phonetic: '' }
+        ],
+        grammar: { title: '论证动词与让步结构', examples: ['Bien que X, Y...', 'Même si X, Y...', 'Non seulement... mais aussi...'] },
+        dialogue: [
+          { fr: 'Le travail à distance : pour ou contre ?', zh: '远程办公：支持还是反对？' },
+          { fr: 'Pour : flexibilité. Contre : isolement. À vous de choisir !', zh: '支持：灵活性；反对：孤独感。你自己选！' }
+        ]
+      }
+    ]
+  },
+  // ===================== 德语 =====================
+  {
+    id: 'de-beginner',
+    language: 'de',
+    languageName: '德语',
+    level: 'beginner',
+    levelName: '入门级',
+    title: '德语零基础入门',
+    description: '从 W-发音 和格变化 入门，带你走进歌德语言世界，对标 CEFR A1',
+    cover: '🇩🇪',
+    color: 'from-yellow-400 via-red-500 to-slate-800',
+    lessons: [
+      {
+        id: 'de-b-1', title: '德语字母与发音', type: 'pronunciation', duration: 22,
+        vocabulary: [
+          { word: 'Hallo', translation: '你好', phonetic: '/ˈhalo/' },
+          { word: 'Guten Tag', translation: '白天好', phonetic: '/ˈɡuːtn̩ taːk/' },
+          { word: 'Tschüss', translation: '再见', phonetic: '/tʃʏs/' },
+          { word: 'Danke', translation: '谢谢', phonetic: '/ˈdaŋkə/' },
+          { word: 'Bitte', translation: '请 / 不客气', phonetic: '/ˈbɪtə/' },
+          { word: 'Ja / Nein', translation: '是 / 否', phonetic: '' }
+        ],
+        grammar: { title: '定冠词第一格 (Nominativ)：der / die / das', examples: ['der Mann 男人（阳）', 'die Frau 女人（阴）', 'das Kind 孩子（中）', 'die Leute 人们（复）'] },
+        dialogue: [
+          { de: 'Hallo, guten Tag! Wie heißt du?', zh: '你好，白天好！你叫什么？' },
+          { de: 'Ich heiße Anna. Und du?', zh: '我叫安娜。你呢？' },
+          { de: 'Ich bin Thomas. Freut mich!', zh: '我是托马斯。很高兴认识你！' }
+        ]
+      },
+      {
+        id: 'de-b-2', title: '自我介绍与家庭', type: 'conversation', duration: 25,
+        vocabulary: [
+          { word: 'heißen', translation: '名叫', phonetic: '' },
+          { word: 'Vater / Mutter', translation: '父亲 / 母亲', phonetic: '' },
+          { word: 'Bruder / Schwester', translation: '兄弟 / 姐妹', phonetic: '' },
+          { word: 'wohnen', translation: '居住', phonetic: '' },
+          { word: 'arbeiten', translation: '工作', phonetic: '' },
+          { word: 'Beruf', translation: '职业', phonetic: '' }
+        ],
+        grammar: { title: '动词现在时变位：ich/du/er/es/sie', examples: ['ich wohne 我住', 'du arbeitest 你工作', 'er heißt 他名叫'] },
+        dialogue: [
+          { de: 'Ich wohne in Berlin und arbeite dort.', zh: '我住在柏林并在那里工作。' },
+          { de: 'Was ist dein Beruf?', zh: '你的职业是什么？' },
+          { de: 'Ich bin Lehrer an einer Schule.', zh: '我是一所学校的老师。' }
+        ]
+      },
+      {
+        id: 'de-b-3', title: '数字、时钟与点餐', type: 'numbers', duration: 25,
+        vocabulary: [
+          { word: 'eins / zwei / drei', translation: '一 / 二 / 三', phonetic: '' },
+          { word: 'zehn / zwanzig / hundert', translation: '十 / 二十 / 一百', phonetic: '' },
+          { word: 'Uhr', translation: '点钟 / 时钟', phonetic: '' },
+          { word: 'Kaffee', translation: '咖啡', phonetic: '' },
+          { word: 'Apfelkuchen', translation: '苹果蛋糕', phonetic: '' },
+          { word: 'Rechnung', translation: '账单', phonetic: '' }
+        ],
+        grammar: { title: '时间表达：Es ist... Uhr', examples: ['Es ist 9 Uhr. 现在九点。', 'halb fünf 四点半', 'viertel nach eins 1点15'] },
+        dialogue: [
+          { de: 'Was möchten Sie trinken?', zh: '您想喝点什么？' },
+          { de: 'Ich nehme einen Kaffee und einen Apfelkuchen, bitte.', zh: '我要一杯咖啡和一个苹果蛋糕，谢谢。' },
+          { de: 'Die Rechnung, bitte. – Das macht 6,50 Euro.', zh: '请结账。—一共6.50欧元。' }
+        ]
+      },
+      {
+        id: 'de-b-4', title: '旅行：问路与交通', type: 'scenario', duration: 28,
+        vocabulary: [
+          { word: 'Bahnhof', translation: '火车站', phonetic: '' },
+          { word: 'U-Bahn', translation: '地铁', phonetic: '' },
+          { word: 'links / rechts / geradeaus', translation: '左 / 右 / 直走', phonetic: '' },
+          { word: 'Ticket', translation: '车票', phonetic: '' },
+          { word: 'Weg', translation: '路，路径', phonetic: '' }
+        ],
+        grammar: { title: '定冠词第三格 (Dativ)：方向与距离', examples: ['Ich gehe zum Bahnhof.', 'Das ist links von dem Haus.'] },
+        dialogue: [
+          { de: 'Entschuldigung, wie komme ich zum Hauptbahnhof?', zh: '抱歉，我怎么到中央火车站？' },
+          { de: 'Gehen Sie geradeaus, dann die zweite Straße links.', zh: '您直走，然后第二条街左转。' },
+          { de: 'Danke für Ihre Hilfe!', zh: '感谢您的帮助！' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'de-intermediate',
+    language: 'de',
+    languageName: '德语',
+    level: 'intermediate',
+    levelName: '进阶级',
+    title: '德语进阶：格变化、情态动词与职场',
+    description: '掌握四格体系、可分动词、完成时与办公室场景，对标 CEFR B1',
+    cover: '🍺',
+    color: 'from-amber-500 to-orange-600',
+    lessons: [
+      {
+        id: 'de-i-1', title: '现在完成时 Perfekt', type: 'grammar', duration: 30,
+        vocabulary: [
+          { word: 'gegessen / getrunken', translation: '吃过 / 喝过', phonetic: '' },
+          { word: 'gegangen / gekommen', translation: '去过 / 来过', phonetic: '' },
+          { word: 'gesprochen', translation: '说过', phonetic: '' },
+          { word: 'geschrieben', translation: '写过', phonetic: '' }
+        ],
+        grammar: { title: 'Perfekt 构成：haben/sein + Partizip II', examples: ['Ich habe Kaffee getrunken.', 'Wir sind nach Hause gegangen.', 'Sie hat einen Brief geschrieben.'] },
+        dialogue: [
+          { de: 'Was hast du am Wochenende gemacht?', zh: '你周末做了什么？' },
+          { de: 'Ich bin mit Freunden ins Kino gegangen und habe Pizza gegessen.', zh: '我和朋友去电影院了，还吃了披萨。' }
+        ]
+      },
+      {
+        id: 'de-i-2', title: '情态动词与表达', type: 'grammar', duration: 28,
+        vocabulary: [
+          { word: 'können', translation: '能够', phonetic: '' },
+          { word: 'müssen', translation: '必须', phonetic: '' },
+          { word: 'wollen', translation: '想要', phonetic: '' },
+          { word: 'sollen', translation: '应该', phonetic: '' },
+          { word: 'dürfen', translation: '允许', phonetic: '' }
+        ],
+        grammar: { title: '情态动词现在时 + 不定式', examples: ['Ich kann Deutsch sprechen.', 'Du musst zum Arzt gehen.', 'Wir wollen reisen.'] },
+        dialogue: [
+          { de: 'Kannst du mir morgen helfen? Ich muss bis 17 Uhr das Projekt abschließen.', zh: '你明天能帮我吗？我必须17点前完成项目。' },
+          { de: 'Natürlich! Ich komme sofort nach der Vorlesung.', zh: '当然！我一下课就来。' }
+        ]
+      },
+      {
+        id: 'de-i-3', title: '办公室：邮件与会议', type: 'business', duration: 30,
+        vocabulary: [
+          { word: 'E-Mail (die)', translation: '邮件', phonetic: '' },
+          { word: 'Besprechung', translation: '会议', phonetic: '' },
+          { word: 'Bericht', translation: '报告', phonetic: '' },
+          { word: 'Termin', translation: '约会，约定', phonetic: '' }
+        ],
+        grammar: { title: '正式邮件句式：Sehr geehrte/r... (Mit freundlichen Grüßen)', examples: ['Sehr geehrte Frau Müller, ...', 'Vielen Dank für Ihre Antwort vom 15.'] },
+        dialogue: [
+          { de: 'Haben Sie meinen Bericht schon gelesen?', zh: '您看过我的报告了吗？' },
+          { de: 'Ja, ich bin damit einverstanden. Wir besprechen es morgen in der Besprechung.', zh: '是的，我同意。我们明天会议上讨论。' }
+        ]
+      },
+      {
+        id: 'de-i-4', title: '可分动词与过去叙述', type: 'speaking', duration: 30,
+        vocabulary: [
+          { word: 'aufstehen', translation: '起床', phonetic: '' },
+          { word: 'anrufen', translation: '打电话', phonetic: '' },
+          { word: 'mitbringen', translation: '带来', phonetic: '' },
+          { word: 'einkaufen', translation: '购物', phonetic: '' }
+        ],
+        grammar: { title: '可分动词：现在时/完成时', examples: ['Ich stehe um 7 Uhr auf.', 'Er hat seine Schwester angerufen.'] },
+        dialogue: [
+          { de: 'Stehst du jeden Tag um 6 Uhr auf?', zh: '你每天6点起床吗？' },
+          { de: 'Fast immer. Danach kaufe ich noch schnell ein.', zh: '几乎总是。之后我还快速地去购物。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'de-advanced',
+    language: 'de',
+    languageName: '德语',
+    level: 'advanced',
+    levelName: '高阶级',
+    title: '德语高级：德福备考 / 论文结构 / 学术表达',
+    description: '德福 TestDaF 与 DSH 冲刺，图表写作、听力笔记与论证口语，对标 CEFR C1',
+    cover: '🏰',
+    color: 'from-amber-700 to-red-700',
+    lessons: [
+      {
+        id: 'de-a-1', title: '德福主题：Umwelt & Nachhaltigkeit', type: 'culture', duration: 35,
+        vocabulary: [
+          { word: 'Umwelt', translation: '环境', phonetic: '' },
+          { word: 'Nachhaltigkeit', translation: '可持续发展', phonetic: '' },
+          { word: 'Treibhausgas', translation: '温室气体', phonetic: '' },
+          { word: 'erneuerbare Energie', translation: '可再生能源', phonetic: '' }
+        ],
+        grammar: { title: '名词化与被动语态（B2/C1 必备）', examples: ['Die Umwelt wird geschützt.', 'Die Reduktion der Emissionen ist wichtig.'] },
+        dialogue: [
+          { de: 'Wie können wir die Umwelt besser schützen?', zh: '我们如何能更好地保护环境？' },
+          { de: 'Indem wir auf erneuerbare Energien umsteigen und weniger Auto fahren.', zh: '通过转向可再生能源，少开车。' }
+        ]
+      },
+      {
+        id: 'de-a-2', title: '德福图表写作 (Beschreibung)', type: 'writing', duration: 40,
+        vocabulary: [
+          { word: 'Grafik / Tabelle', translation: '图表 / 表格', phonetic: '' },
+          { word: 'Anteil', translation: '比例，份额', phonetic: '' },
+          { word: 'Prognose', translation: '预测', phonetic: '' },
+          { word: 'Vergleich', translation: '对比', phonetic: '' }
+        ],
+        grammar: { title: '德福图表：Einleitung → Beschreibung → Auswertung', examples: ['Die Grafik zeigt, dass...', 'Im Vergleich zu 2010 stieg X um Y...', 'Man kann daraus schließen, dass...'] },
+        dialogue: [
+          { de: 'Wie beschreibt man am besten eine Grafik im TestDaF?', zh: '在德福考试中，如何最好地描述图表？' },
+          { de: 'Zuerst Einleitung, dann die Daten systematisch beschreiben, abschließend die Tendenz hervorheben.', zh: '首先引言，然后系统描述数据，最后强调趋势。' }
+        ]
+      },
+      {
+        id: 'de-a-3', title: '学术写作结构：Einleitung / Hauptteil / Schluss', type: 'writing', duration: 35,
+        vocabulary: [
+          { word: 'These / Antithese / Synthese', translation: '论点 / 反论点 / 合论点', phonetic: '' },
+          { word: 'Argumentation', translation: '论证', phonetic: '' },
+          { word: 'Fazit', translation: '结论', phonetic: '' },
+          { word: 'Beispiel', translation: '例子', phonetic: '' }
+        ],
+        grammar: { title: 'DSH 论文：连接词库', examples: ['Einerseits... Andererseits...', 'Deshalb / Aus diesem Grund...', 'Zusammenfassend lässt sich sagen, dass...'] },
+        dialogue: [
+          { de: 'Wie schreibe ich eine gute Einleitung in der DSH-Schriftlichen Arbeit?', zh: '我如何在DSH书面作业中写好引言？' },
+          { de: 'Kontext liefern → Themenschritt → These / Leitfrage formulieren.', zh: '提供背景 → 主题推进 → 提出论点或引导问题。' }
+        ]
+      },
+      {
+        id: 'de-a-4', title: '德福口语 Ausspracheprüfung 模拟', type: 'speaking', duration: 40,
+        vocabulary: [
+          { word: 'Meinung', translation: '观点', phonetic: '' },
+          { word: 'pro / kontra', translation: '支持 / 反对', phonetic: '' },
+          { word: 'Behauptung', translation: '主张', phonetic: '' },
+          { word: 'Begründung', translation: '理由', phonetic: '' }
+        ],
+        grammar: { title: '表达观点的情态与让步', examples: ['Meiner Meinung nach...', 'Obwohl X, Y...', 'Ich glaube, dass... Andererseits könnte man sagen, dass...'] },
+        dialogue: [
+          { de: 'Sollen die Länder mehr Geld für Bildung ausgeben?', zh: '各国应该在教育上投入更多钱吗？' },
+          { de: 'Definitiv pro. Nur durch gute Bildung kann eine Gesellschaft nachhaltig wachsen.', zh: '绝对支持。只有通过良好的教育，社会才能可持续发展。' }
+        ]
+      }
+    ]
+  },
+  // ===================== 西班牙语 =====================
+  {
+    id: 'es-beginner',
+    language: 'es',
+    languageName: '西班牙语',
+    level: 'beginner',
+    levelName: '入门级',
+    title: '西班牙语零基础入门',
+    description: 'Rolling R 与 Hola，从拉丁热情开始，对标 CEFR A1',
+    cover: '🇪🇸',
+    color: 'from-red-500 via-orange-400 to-yellow-500',
+    lessons: [
+      {
+        id: 'es-b-1', title: '发音与基础问候', type: 'pronunciation', duration: 20,
+        vocabulary: [
+          { word: 'Hola', translation: '你好', phonetic: '/ˈola/' },
+          { word: 'Gracias', translation: '谢谢', phonetic: '/ˈɡɾaθjas/' },
+          { word: 'Adiós', translation: '再见', phonetic: '/aˈðjos/' },
+          { word: 'Buenos días', translation: '早上好', phonetic: '' },
+          { word: 'Por favor', translation: '请', phonetic: '' },
+          { word: 'Sí / No', translation: '是 / 否', phonetic: '' }
+        ],
+        grammar: { title: '定冠词：el / la / los / las', examples: ['el libro 书（阳）', 'la casa 房子（阴）', 'los niños 男孩们', 'las flores 花们'] },
+        dialogue: [
+          { es: '¡Hola! ¿Cómo estás?', zh: '你好！你好吗？' },
+          { es: 'Muy bien, gracias. ¿Y tú?', zh: '很好，谢谢。你呢？' },
+          { es: '¡Estupendo! Adiós.', zh: '太棒了！再见。' }
+        ]
+      },
+      {
+        id: 'es-b-2', title: '自我介绍与家庭', type: 'conversation', duration: 22,
+        vocabulary: [
+          { word: 'llamarse', translation: '名叫', phonetic: '' },
+          { word: 'padre / madre', translation: '父亲 / 母亲', phonetic: '' },
+          { word: 'hermano / hermana', translation: '兄弟 / 姐妹', phonetic: '' },
+          { word: 'vivir', translation: '居住', phonetic: '' },
+          { word: 'trabajar', translation: '工作', phonetic: '' }
+        ],
+        grammar: { title: 'Ser vs Estar（是 vs 在）入门', examples: ['Soy de China. 我来自中国。', 'Estoy en Madrid. 我在马德里。', 'Ella es estudiante. 她是学生。'] },
+        dialogue: [
+          { es: '¿Cómo te llamas?', zh: '你叫什么？' },
+          { es: 'Me llamo Carlos. Vivo en Barcelona.', zh: '我叫卡洛斯。我住在巴塞罗那。' }
+        ]
+      },
+      {
+        id: 'es-b-3', title: '数字、时间与塔帕斯', type: 'numbers', duration: 25,
+        vocabulary: [
+          { word: 'uno / dos / tres', translation: '一 / 二 / 三', phonetic: '' },
+          { word: 'diez / veinte / cien', translation: '十 / 二十 / 一百', phonetic: '' },
+          { word: 'hora', translation: '小时，点', phonetic: '' },
+          { word: 'café', translation: '咖啡', phonetic: '' },
+          { word: 'tapa', translation: '塔帕斯（小食）', phonetic: '' },
+          { word: 'cuenta', translation: '账单', phonetic: '' }
+        ],
+        grammar: { title: 'Qué hora es? 询问时间', examples: ['Es la una. 一点。', 'Son las tres y media. 三点半。', 'Es mediodía. 中午。'] },
+        dialogue: [
+          { es: '¿Qué quieres tomar?', zh: '你想喝点/吃点什么？' },
+          { es: 'Un café con leche y una tapa de jamón, por favor.', zh: '一杯拿铁和一份火腿塔帕斯，谢谢。' },
+          { es: '¿La cuenta? – Son 7 euros.', zh: '要账单吗？—7欧元。' }
+        ]
+      },
+      {
+        id: 'es-b-4', title: '旅行场景：问路与地铁', type: 'scenario', duration: 28,
+        vocabulary: [
+          { word: 'aeropuerto', translation: '机场', phonetic: '' },
+          { word: 'metro', translation: '地铁', phonetic: '' },
+          { word: 'hotel', translation: '酒店', phonetic: '' },
+          { word: 'derecha / izquierda', translation: '右 / 左', phonetic: '' },
+          { word: 'todo recto', translation: '直走', phonetic: '' },
+          { word: 'cerca', translation: '近', phonetic: '' }
+        ],
+        grammar: { title: '方位前置词：cerca de, al lado de, enfrente de', examples: ['El hotel está cerca del metro.', 'Está a la derecha.'] },
+        dialogue: [
+          { es: 'Perdón, ¿dónde está el metro?', zh: '抱歉，请问地铁在哪里？' },
+          { es: 'Todo recto, luego a la izquierda. Está muy cerca.', zh: '直走，然后左转。非常近。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'es-intermediate',
+    language: 'es',
+    languageName: '西班牙语',
+    level: 'intermediate',
+    levelName: '进阶级',
+    title: '西班牙语进阶：过去时与拉美西语特色',
+    description: 'Pretérito Imperfecto vs Indefinido、命令式、拉丁西语，对标 CEFR B1',
+    cover: '💃',
+    color: 'from-rose-500 to-orange-500',
+    lessons: [
+      {
+        id: 'es-i-1', title: '过去时辨析：Pretérito Indefinido vs Imperfecto', type: 'grammar', duration: 30,
+        vocabulary: [
+          { word: 'fui / fuiste / fue', translation: '我/你/他去过', phonetic: '' },
+          { word: 'era / eras / era', translation: '我/你/他过去是', phonetic: '' },
+          { word: 'comí', translation: '我吃了', phonetic: '' },
+          { word: 'comía', translation: '我（过去经常/当时）吃', phonetic: '' }
+        ],
+        grammar: { title: '叙述 vs 背景：Indefinido（一次性完成）vs Imperfecto（持续/习惯）', examples: ['Ayer fui al cine. (一次性)', 'De niño, iba al parque todos los sábados. (小时候每周习惯性)'] },
+        dialogue: [
+          { es: '¿Qué hiciste el fin de semana?', zh: '你周末做了什么？' },
+          { es: 'El sábado fui a una fiesta y bailé salsa toda la noche.', zh: '周六我去了一个派对，一整夜跳萨尔萨舞。' }
+        ]
+      },
+      {
+        id: 'es-i-2', title: '命令式：给朋友的建议与安排', type: 'grammar', duration: 28,
+        vocabulary: [
+          { word: '¡Ven!', translation: '来吧！', phonetic: '' },
+          { word: '¡Dime!', translation: '告诉我！', phonetic: '' },
+          { word: '¡Vamos!', translation: '走吧！', phonetic: '' },
+          { word: '¡Escribe!', translation: '写下来！', phonetic: '' }
+        ],
+        grammar: { title: 'Tú 命令式（熟悉）：肯定 vs 否定', examples: ['¡Ven aquí! → No vengas tarde.', '¡Dime la verdad! → No me digas mentiras.'] },
+        dialogue: [
+          { es: '¡Oye! Ven a mi casa esta tarde, tenemos una paella.', zh: '喂！下午来我家吧，我们吃海鲜饭。' },
+          { es: '¡Genial! Allí estaré a las 7. ¡Gracias por invitarme!', zh: '太棒了！我7点到。谢谢你邀请我！' }
+        ]
+      },
+      {
+        id: 'es-i-3', title: '拉美西语特色：vosotros vs ustedes', type: 'culture', duration: 25,
+        vocabulary: [
+          { word: 'ustedes (Latinoamérica)', translation: '你们（拉美用，代替vosotros）', phonetic: '' },
+          { word: 'carro (México) = coche', translation: '汽车', phonetic: '' },
+          { word: 'churrasco (Argentina)', translation: '巴西烤肉/阿根廷烤肉', phonetic: '' },
+          { word: 'salsa / tango / cumbia', translation: '萨尔萨/探戈/昆比亚（舞蹈）', phonetic: '' }
+        ],
+        grammar: { title: 'Ustedes 变位：简化的拉美西语', examples: ['Españoles: ¿Vosotros venís? → Latinos: ¿Ustedes vienen?'] },
+        dialogue: [
+          { es: '¿Ustedes hablan con vosotros en España?', zh: '你们在西班牙用 vosotros 说话吗？' },
+          { es: 'Sí, pero en México casi siempre decimos ustedes. ¡Es más fácil!', zh: '是的，但在墨西哥我们几乎都说 ustedes。更简单！' }
+        ]
+      },
+      {
+        id: 'es-i-4', title: '日常写作：Email & 留言', type: 'writing', duration: 28,
+        vocabulary: [
+          { word: 'Estimado/a', translation: '尊敬的（正式称谓）', phonetic: '' },
+          { word: 'Quedar', translation: '见面，约见', phonetic: '' },
+          { word: 'asunto', translation: '主题（邮件）', phonetic: '' },
+          { word: 'Atentamente', translation: '此致敬礼（落款）', phonetic: '' }
+        ],
+        grammar: { title: '正式 vs 非正式邮件语气', examples: ['Estimado Sr. García: ... Atentamente', '¡Hola Juan! ... Un abrazo'] },
+        dialogue: [
+          { es: '¿Cómo te despides en un correo oficial?', zh: '你在正式邮件中如何落款？' },
+          { es: 'Generalmente "Atentamente", seguido del nombre completo.', zh: '通常用 "此致敬礼"，然后是全名。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'es-advanced',
+    language: 'es',
+    languageName: '西班牙语',
+    level: 'advanced',
+    levelName: '高阶级',
+    title: '西班牙语高级：DELE B2 全题型冲刺',
+    description: 'DELE B2 阅读、写作、听力与口语表达全面备考，对标 CEFR B2/C1',
+    cover: '💃🏻',
+    color: 'from-red-600 via-yellow-500 to-red-700',
+    lessons: [
+      {
+        id: 'es-a-1', title: '虚拟式现在时：表达观点与情感', type: 'grammar', duration: 35,
+        vocabulary: [
+          { word: 'dudar que', translation: '怀疑……', phonetic: '' },
+          { word: 'esperar que', translation: '希望……', phonetic: '' },
+          { word: 'ojalá que', translation: '但愿……', phonetic: '' },
+          { word: 'es necesario que', translation: '有必要……', phonetic: '' }
+        ],
+        grammar: { title: 'Subjuntivo（虚拟式）触发词', examples: ['Espero que vengas. 我希望你来。', 'Dudo que sea cierto. 我怀疑这是不是真的。', '¡Ojalá que llueva café!'] },
+        dialogue: [
+          { es: '¿Crees que apruebe el DELE B2?', zh: '你觉得我能通过DELE B2吗？' },
+          { es: 'Sí, ¡estoy seguro! Pero dudo que lo hagas sin estudiar. 😉', zh: '当然能！但我怀疑不学习能通过。😉' }
+        ]
+      },
+      {
+        id: 'es-a-2', title: 'DELE B2 阅读：报刊文章理解', type: 'writing', duration: 35,
+        vocabulary: [
+          { word: 'artículo', translation: '文章', phonetic: '' },
+          { word: 'opinión', translation: '观点', phonetic: '' },
+          { word: 'autor', translation: '作者', phonetic: '' },
+          { word: 'conclusión', translation: '结论', phonetic: '' }
+        ],
+        grammar: { title: '阅读策略：Skim (主旨) / Scan (细节) / Infer (推断)', examples: ['Lee el título y el primer párrafo → idea general', 'Busca palabras clave → información concreta'] },
+        dialogue: [
+          { es: '¿Cómo abordas una lectura del DELE?', zh: '你怎么处理DELE阅读题？' },
+          { es: 'Primero título, luego preguntas, después el texto. ¡Tiempo es oro!', zh: '先看标题，然后问题，再看文章。时间就是金钱！' }
+        ]
+      },
+      {
+        id: 'es-a-3', title: 'DELE B2 写作 Tarea 1 & 2', type: 'writing', duration: 35,
+        vocabulary: [
+          { word: 'carta al director', translation: '致编辑信', phonetic: '' },
+          { word: 'ensayo argumentativo', translation: '议论文', phonetic: '' },
+          { word: 'introducción / desarrollo / conclusión', translation: '引 / 展 / 结', phonetic: '' }
+        ],
+        grammar: { title: '议论文模板：4段式 + 辩证结构', examples: ['Introducción (tema+tesis) → Argumentos a favor → Argumentos en contra → Conclusión'] },
+        dialogue: [
+          { es: '¿Qué estructura sigues en el ensayo?', zh: '你在议论文中遵循什么结构？' },
+          { es: 'Clásica: 4 párrafos. Tesis → Pruebas → Contraargumento → Conclusión personal.', zh: '经典：4段。论点 → 论据 → 反论点 → 个人结论。' }
+        ]
+      },
+      {
+        id: 'es-a-4', title: 'DELE B2 口语：图片描述 + 对话', type: 'speaking', duration: 38,
+        vocabulary: [
+          { word: 'en primer plano / al fondo', translation: '前景 / 背景', phonetic: '' },
+          { word: 'a la izquierda / derecha', translation: '左 / 右', phonetic: '' },
+          { word: 'parece que / me da la impresión de que', translation: '看起来…… / 我感觉……', phonetic: '' }
+        ],
+        grammar: { title: '图片描述 + 观点表达 + 辩论句式', examples: ['En la foto podemos ver...', 'A mi juicio...', 'Por un lado... Por otro lado...'] },
+        dialogue: [
+          { es: '¿Cómo preparas la prueba oral del DELE?', zh: '你如何准备DELE口试？' },
+          { es: 'Describo fotos todos los días, y debato con amigos: es clave la fluidez.', zh: '我每天描述图片，和朋友辩论：流畅性是关键。' }
+        ]
+      }
+    ]
+  },
+  // ===================== 考试备考专项冲刺班 =====================
+  {
+    id: 'en-ielts-65',
+    language: 'en',
+    languageName: '英语',
+    level: 'exam',
+    levelName: 'IELTS 6.5+ 冲刺',
+    title: '雅思 IELTS 6.5+ 冲刺班（剑雅15-19）',
+    description: '听/说/读/写 四科精讲 + 大小作文批改 + 口语模拟，剑雅15-19 真题全刷',
+    cover: '🎓',
+    color: 'from-rose-500 to-red-600',
+    lessons: [
+      {
+        id: 'ielts-1', title: '雅思考试全解析 + 首考 7 分备考规划', type: 'strategy', duration: 35,
+        vocabulary: [
+          { word: 'Band score', translation: '分数段', phonetic: '' },
+          { word: 'TR / CC / LR / GRA', translation: '任务完成/连贯/词汇/语法（写作）', phonetic: '' },
+          { word: 'FC / LR / P / G', translation: '流利/词汇/发音/语法（口语）', phonetic: '' }
+        ],
+        grammar: { title: '评分标准深度解读', examples: ['写作 Task 2：40 分钟 ≥ 250 词', '口语 Part 2：2 分钟独白，需含故事线'] },
+        dialogue: [
+          { en: 'What band do you need for university admission?', zh: '你大学入学需要几分？' },
+          { en: 'Overall 6.5, with no sub-score below 6.0.', zh: '总分6.5，单项不低于6.0。' }
+        ]
+      },
+      {
+        id: 'ielts-2', title: '听力：Section 3/4 学术对话与填空策略', type: 'listening', duration: 40,
+        vocabulary: [
+          { word: 'distractor', translation: '干扰项', phonetic: '' },
+          { word: 'signposting words', translation: '路标词', phonetic: '' },
+          { word: 'prediction', translation: '词性预测', phonetic: '' }
+        ],
+        grammar: { title: '填空三步法：预读 → 预测 → 锁定信号词', examples: ['But / However → 转折后往往是答案', 'In fact / What\'s more → 强调信号'] },
+        dialogue: [
+          { en: 'I keep missing answers in Section 4. Any tips?', zh: '我一直错过Section 4的答案，有什么技巧吗？' },
+          { en: 'Predict part of speech BEFORE the audio plays, and listen for signposting words.', zh: '音频播放前先预测词性，并留意路标词。' }
+        ]
+      },
+      {
+        id: 'ielts-3', title: '阅读：Matching / T/F/NG / List of Headings', type: 'reading', duration: 40,
+        vocabulary: [
+          { word: 'scanning', translation: '扫读', phonetic: '' },
+          { word: 'skimming', translation: '略读', phonetic: '' },
+          { word: 'paraphrase', translation: '同义改写', phonetic: '' }
+        ],
+        grammar: { title: 'T/F/NG 区别：NOT GIVEN 的典型陷阱', examples: ['F = 与文中观点矛盾', 'NG = 文中未提及，不能推断'] },
+        dialogue: [
+          { en: 'The most difficult one is NG for me.', zh: '对我来说最难的是NG。' },
+          { en: 'If there is no evidence in the passage, it is NOT GIVEN — never guess with outside knowledge.', zh: '如果文中没有证据，就是 NOT GIVEN — 绝不要用课外知识猜测。' }
+        ]
+      },
+      {
+        id: 'ielts-4', title: '写作 Task 1：折线 / 柱状 / 表格 数据图', type: 'writing', duration: 45,
+        vocabulary: [
+          { word: 'peak / trough', translation: '峰值 / 谷值', phonetic: '' },
+          { word: 'fluctuate / remain stable', translation: '波动 / 保持稳定', phonetic: '' },
+          { word: 'account for', translation: '占（比例）', phonetic: '' }
+        ],
+        grammar: { title: '高分结构：Introduction + Overview + Details × 2', examples: ['Overall → highlight main trends', 'In detail → compare specific numbers'] },
+        dialogue: [
+          { en: 'Is overview really that important?', zh: '概述真的那么重要吗？' },
+          { en: 'Without a clear overview you cap at Band 5 for Task Achievement.', zh: '没有清晰概述，任务完成度最高只能到5分。' }
+        ]
+      },
+      {
+        id: 'ielts-5', title: '写作 Task 2：议论文 4 段式 + 观点表达', type: 'writing', duration: 45,
+        vocabulary: [
+          { word: 'thesis / topic sentence / concession', translation: '论点 / 段首句 / 让步', phonetic: '' },
+          { word: 'admittedly', translation: '诚然（让步词）', phonetic: '' },
+          { word: 'nevertheless', translation: '然而（转折词）', phonetic: '' }
+        ],
+        grammar: { title: '辩证 4 段：Intro → Body 1 (Agree) → Body 2 (Disagree/Concession) → Conclusion', examples: ['In conclusion, although X, I firmly believe that Y...'] },
+        dialogue: [
+          { en: 'Should I give a one-sided or balanced view?', zh: '我应该给出单边观点还是平衡观点？' },
+          { en: 'Slightly one-sided with a concession paragraph is safer for a Band 7.', zh: '带让步段的轻微偏向性结构更稳拿7分。' }
+        ]
+      },
+      {
+        id: 'ielts-6', title: '口语 Part 1/2/3 全题型 + 模考', type: 'speaking', duration: 50,
+        vocabulary: [
+          { word: 'extended answer', translation: '展开回答（P1 3-4句）', phonetic: '' },
+          { word: 'cue card', translation: '题卡（P2）', phonetic: '' },
+          { word: 'abstract discussion', translation: '抽象讨论（P3）', phonetic: '' }
+        ],
+        grammar: { title: 'Part 2 1分钟笔记结构：PEEL (Point-Example-Experience-Link)', examples: ['I\'d like to talk about... For example... I remember... This made me realize that...'] },
+        dialogue: [
+          { en: 'I can\'t speak for 2 minutes straight in Part 2.', zh: '我Part 2说不到2分钟。' },
+          { en: 'Use a short story from your own experience — stories are easier to expand.', zh: '用你亲身经历的小故事——故事更容易展开。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ja-jlpt-n2',
+    language: 'ja',
+    languageName: '日语',
+    level: 'exam',
+    levelName: 'JLPT N2 冲刺',
+    title: 'JLPT N2 冲刺班（新完全掌握 + 10年真题）',
+    description: 'N2 核心 3000 词 + 语法 300 条精讲、阅读理解对策、听解突破 + 写作备考',
+    cover: '⛩️',
+    color: 'from-rose-600 to-red-700',
+    lessons: [
+      {
+        id: 'jlpt-1', title: 'JLPT N2 合格线策略 & 100 日复习计划', type: 'strategy', duration: 35,
+        vocabulary: [
+          { word: '言語知識（文字・語彙・文法）', translation: '语言知识（文字/词汇/语法）', phonetic: '' },
+          { word: '読解', translation: '阅读', phonetic: '' },
+          { word: '聴解', translation: '听力', phonetic: '' }
+        ],
+        grammar: { title: '合格目标分配：语言知识 80% / 阅读 70% / 听解 65%', examples: ['3 月冲刺 → 1 日 3 节：1 词汇语法、1 阅读、1 听力'] },
+        dialogue: [
+          { ja: 'N2に一発合格するには、どう計画を立てるべきですか？', zh: '要一次通过N2，应该如何规划？' },
+          { ja: '100日計画で、朝1時間語彙、夜1時間過去問、通勤で聴解がおすすめ。', zh: '建议100天计划：早上1小时词汇，晚上1小时真题，通勤时听听力。' }
+        ]
+      },
+      {
+        id: 'jlpt-2', title: '文字词汇：10 大高频词根 & 外来语', type: 'vocabulary', duration: 40,
+        vocabulary: [
+          { word: '経緯（けいい）', translation: '来龙去脉，原委', phonetic: 'keii' },
+          { word: '推奨（すいしょう）', translation: '推荐', phonetic: 'suishō' },
+          { word: '準拠（じゅんきょ）', translation: '遵照，依据', phonetic: 'junkyo' },
+          { word: 'コンプライアンス', translation: '合规（外来语）', phonetic: 'compliance' }
+        ],
+        grammar: { title: 'N2 文字高频词根：経・推・準・対・基・拠', examples: ['推進する / 推測する / 推薦状', '対策 / 対応 / 対面'] },
+        dialogue: [
+          { ja: '漢字が苦手で、覚えられません…', zh: '我汉字很差，记不住……' },
+          { ja: '語呂合わせや、接頭語・接尾語ごとにまとめると定着しやすい。', zh: '谐音记忆或按前缀/后缀分组记忆更牢固。' }
+        ]
+      },
+      {
+        id: 'jlpt-3', title: 'N2 核心语法 300 条精讲（上篇）', type: 'grammar', duration: 45,
+        vocabulary: [
+          { word: '～ざるを得ない', translation: '不得不……', phonetic: 'zaru o enai' },
+          { word: '～につれて', translation: '随着……', phonetic: 'ni tsurete' },
+          { word: '～をもとに', translation: '基于……', phonetic: 'o moto ni' },
+          { word: '～わけではない', translation: '并不是说……', phonetic: 'wake dewa nai' }
+        ],
+        grammar: { title: 'N2 必出 5 大语法群：推量・譲歩・原因・条件・傾向', examples: ['～にもかかわらず（譲歩）', '～おかげで / ～せいで（原因）'] },
+        dialogue: [
+          { ja: '「ざるを得ない」は日常で使いますか？', zh: '「ざるを得ない」会在日常生活中使用吗？' },
+          { ja: 'はい、やむを得ない時によく使います。「残業せざるを得なかった」のように。', zh: '是的，在不得已时常用。比如「不得不加班」。' }
+        ]
+      },
+      {
+        id: 'jlpt-4', title: 'N2 核心语法 300 条精讲（下篇）', type: 'grammar', duration: 45,
+        vocabulary: [
+          { word: '～に反して', translation: '与……相反', phonetic: 'ni hanshite' },
+          { word: '～に際して', translation: '在……之际', phonetic: 'ni saishite' },
+          { word: '～かねない', translation: '有……的危险', phonetic: 'kanenai' },
+          { word: '～にこたえて', translation: '响应……', phonetic: 'ni kotaete' }
+        ],
+        grammar: { title: '敬语 N2 必出：尊敬語・謙譲語・丁寧語・美化語', examples: ['お＋Vます＋になる（尊敬）', 'お＋Vます＋する（謙譲）'] },
+        dialogue: [
+          { ja: '敬語が難しすぎます！', zh: '敬语太难了！' },
+          { ja: 'まず基本の尊敬・謙譲15組だけ暗記 → 過去問を回すのが最速。', zh: '先只背基础敬语15组 → 刷真题是最快的。' }
+        ]
+      },
+      {
+        id: 'jlpt-5', title: '读解：情報検索・内容理解・統合理解', type: 'reading', duration: 45,
+        vocabulary: [
+          { word: '要旨（ようし）', translation: '要旨，核心', phonetic: 'yōshi' },
+          { word: '主張（しゅちょう）', translation: '主张', phonetic: 'shuchō' },
+          { word: '根拠（こんきょ）', translation: '根据', phonetic: 'konkyo' }
+        ],
+        grammar: { title: '阅读 5 大题型对策：速読 → 精読 → 検証', examples: ['情報検索：先看题干关键词，定位原文', '内容理解（評論）：逆接の後＝主張'] },
+        dialogue: [
+          { ja: '読解の時間が足りません。', zh: '阅读时间不够。' },
+          { ja: '本文を読む前に問題文を先読みしよう。正解はほとんど逆接の後！', zh: '先读题干再看文章。正确答案几乎都在转折后！' }
+        ]
+      },
+      {
+        id: 'jlpt-6', title: '听解 & 模考：课题理解 / ポイント理解 / 概要理解', type: 'listening', duration: 50,
+        vocabulary: [
+          { word: '課題理解（聞き取り）', translation: '课题理解', phonetic: '' },
+          { word: '即時応答', translation: '即时应答（三选一）', phonetic: '' },
+          { word: '音声メモ', translation: '听力速记', phonetic: '' }
+        ],
+        grammar: { title: '听解 4 大题型得分法：先读选项 + 预测内容', examples: ['即時応答：相手の発言にふさわしい返答（敬語・態度）', '概要理解：結論は最後！'] },
+        dialogue: [
+          { ja: '即時応答がよく分かりません。', zh: '即时应答题型经常搞不懂。' },
+          { ja: '「いつもお世話になっております」→ 「こちらこそ！」が最も多いパターン。', zh: '「一直承蒙关照」→「我才是！」是最高频的模式。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'ko-topik4',
+    language: 'ko',
+    languageName: '韩语',
+    level: 'exam',
+    levelName: 'TOPIK II 4 级冲刺',
+    title: 'TOPIK II 4 级冲刺班（真题 66-72 回精讲 + 写作模板）',
+    description: 'TOPIK 2 词汇语法全过 + 阅读 5 大题型 + 写作 51/52/53/54 题模板 + 听力抓关键词',
+    cover: '🎖️',
+    color: 'from-blue-600 to-indigo-700',
+    lessons: [
+      {
+        id: 'topik-1', title: 'TOPIK II 结构解析 & 4 级合格备考路线', type: 'strategy', duration: 32,
+        vocabulary: [
+          { word: '어휘·문법', translation: '词汇语法（30题）', phonetic: '' },
+          { word: '쓰기', translation: '写作（4题）', phonetic: '' },
+          { word: '듣기 / 읽기', translation: '听力 / 阅读（各50题）', phonetic: '' }
+        ],
+        grammar: { title: '4 级合格线：单科平均 ≥ 50 分，总分 ≥ 200', examples: ['写作 ≥ 45 分 → 背 4 篇模板 + 连接词汇总'] },
+        dialogue: [
+          { ko: '4급 따려면 얼마나 공부해야 하나요?', zh: '要拿4级需要学多久？' },
+          { ko: '보통 3~6개월, 매일 2시간씩. 어휘 1시간, 쓰기 30분, 듣기 30분 추천!', zh: '一般3-6个月，每天2小时。推荐词汇1小时，写作30分钟，听力30分钟！' }
+        ]
+      },
+      {
+        id: 'topik-2', title: '词汇语法：4 级 1000 核心词 & 语法 200 条', type: 'vocabulary', duration: 40,
+        vocabulary: [
+          { word: '-에 비해', translation: '与……相比', phonetic: 'e bihae' },
+          { word: '-는 반면에', translation: '……而另一方面（对比）', phonetic: 'neun banmyeone' },
+          { word: '-다 보니', translation: '……着（结果）发现', phonetic: 'da boni' },
+          { word: '-을/를 통해', translation: '通过……', phonetic: 'eul/reul tonghae' }
+        ],
+        grammar: { title: 'TOPIK 高频「对比/让步/条件/目的」4 大语法群', examples: ['-더라도（譲歩）', '-기 위해서（目的）', '-는 대신（代替/反対）'] },
+        dialogue: [
+          { ko: '문법이 너무 많아서 외우기 힘들어요.', zh: '语法太多背不下来。' },
+          { ko: '비슷한 의미끼리 묶어서 예문과 함께 암기하는 것이 가장 좋아요!', zh: '最好把意思相近的语法分组，配合例句一起记！' }
+        ]
+      },
+      {
+        id: 'topik-3', title: '듣기：选图 / 对话综合 / 新闻主题抓关键词', type: 'listening', duration: 40,
+        vocabulary: [
+          { word: '중요 키워드', translation: '重要关键词', phonetic: '' },
+          { word: '하지만 / 그런데 / 그래서', translation: '但是 / 不过 / 所以（信号词）', phonetic: '' },
+          { word: '선택지 미리 읽기', translation: '提前读选项', phonetic: '' }
+        ],
+        grammar: { title: '听力 4 步法：先读选项 → 预判 → 听关键词 → 匹配同义改写', examples: ['新闻主题：정부 발표 / 기자 / 대책 / 경제 등 → 주제는 첫 3초에'] },
+        dialogue: [
+          { ko: '뉴스 듣기만 하면 너무 빨라요.', zh: '一放新闻类就太快了。' },
+          { ko: '주제는 보통 첫 문장에! 끝까지 집중하면 결론은 마지막에 반복돼요.', zh: '主题一般在第一句！集中听到最后，结论往往在末尾重复。' }
+        ]
+      },
+      {
+        id: 'topik-4', title: '읽기：빈칸 / 문장 순서 / 주제 찾기', type: 'reading', duration: 40,
+        vocabulary: [
+          { word: '주제 / 요지', translation: '主题 / 要旨', phonetic: '' },
+          { word: '흐름 파악', translation: '把握脉络', phonetic: '' },
+          { word: '내용 일치', translation: '内容一致', phonetic: '' }
+        ],
+        grammar: { title: '阅读高分：5 大题型得分策略', examples: ['주제 찾기：첫문장과 마지막문장을 합쳐서 중심어 찾기', '내용 일치：원문과 완전히 같은 선택지 = 보통 틀림（동의어）'] },
+        dialogue: [
+          { ko: '읽기 시간이 부족해요.', zh: '阅读时间不够。' },
+          { ko: '어휘 문법 20분 → 쓰기 30분 → 읽기 70분 분배! 어려운 문제는 건너뛰기.', zh: '词汇语法20分→写作30分→阅读70分分配！难题先跳过。' }
+        ]
+      },
+      {
+        id: 'topik-5', title: '쓰기 51/52 题：填空句式 & 连接词模板', type: 'writing', duration: 38,
+        vocabulary: [
+          { word: '-ㄴ/는 반면,', translation: '而另一方面', phonetic: '' },
+          { word: '-거나 / -ㄹ 뿐만 아니라', translation: '或 / 不仅……而且', phonetic: '' },
+          { word: '따라서 / 그럼으로써', translation: '因此 / 借此', phonetic: '' }
+        ],
+        grammar: { title: '51 题（情景填空）：尊敬 + 句型；52 题（说明填空）：逻辑连接词', examples: ['51 题：「아/어/여 주시겠어요?」「부탁드립니다」', '52 题：「그러나 / 이는 / 왜냐하면」'] },
+        dialogue: [
+          { ko: '52번 빈칸이 항상 틀려요.', zh: '52题填空每次都错。' },
+          { ko: '앞/뒤 문장을 보고 대조/인과/예시 중 어떤 연결인지 판단하면 쉬워요!', zh: '看前后句子，判断是对比/因果/举例关系就简单了！' }
+        ]
+      },
+      {
+        id: 'topik-6', title: '쓰기 53/54 题：图表写作 & 议论文（700字）模板', type: 'writing', duration: 45,
+        vocabulary: [
+          { word: '그래프 설명', translation: '图表描述（53题）', phonetic: '' },
+          { word: '서론 / 본론 / 결론', translation: '引论 / 本论 / 结论（54题）', phonetic: '' },
+          { word: '찬성 / 반대', translation: '赞成 / 反对', phonetic: '' }
+        ],
+        grammar: { title: '53题：도입 → 자료설명 → 전망/원인。54题：4段结构（辩证）', examples: ['54题模板：찬성 측 주장과 근거 → 반대 측 주장과 근거 → 나의 의견으로 마무리'] },
+        dialogue: [
+          { ko: '54번 700자 쓰기가 너무 어려워요.', zh: '54题700字写作太难了。' },
+          { ko: '형식을 암기하세요! 첫 단락은 주제 제시 → 2,3단락 장단점 → 마지막 개인 의견. 매우 안정적!', zh: '背模板！第一段提出主题→2、3段优缺点→最后个人意见。非常稳！' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'fr-delf-b2',
+    language: 'fr',
+    languageName: '法语',
+    level: 'exam',
+    levelName: 'DELF B2 冲刺',
+    title: '法语 DELF B2 证书冲刺班（DELF 250 真题精讲 + 口语辩论模拟）',
+    description: 'DELF B2 听/说/读/写 4 科全面备考，辩论提纲训练 + 写作范文 + 口语批改',
+    cover: '🗼',
+    color: 'from-blue-700 to-indigo-800',
+    lessons: [
+      {
+        id: 'delf-1', title: 'DELF B2 全面解析 + 分数分配与战术', type: 'strategy', duration: 32,
+        vocabulary: [
+          { word: 'Compréhension orale / écrite', translation: '听力/阅读理解', phonetic: '' },
+          { word: 'Production orale / écrite', translation: '口语/写作输出', phonetic: '' },
+          { word: 'Point /25 × 4 = 100', translation: '4科×25=100分（及格：50/100，单科≥5）', phonetic: '' }
+        ],
+        grammar: { title: 'DELF B2 通过标准：50/100 分 + 每科最低 5 分', examples: ['Production écrite : 250 mots（论点 / 反论点 / 结论）', 'Production orale : 10 分钟 exposé + 10 分钟 débat'] },
+        dialogue: [
+          { fr: 'Dois-je utiliser un langage très soutenu à l\'oral ?', zh: '口语时我需要用非常正式的表达吗？' },
+          { fr: 'Naturel mais structuré : utilisez les connecteurs, pas besoin de mots rares.', zh: '自然但有结构：用连接词，不需要罕见词汇。' }
+        ]
+      },
+      {
+        id: 'delf-2', title: 'Compréhension orale : 采访 & 报告抓重点', type: 'listening', duration: 40,
+        vocabulary: [
+          { word: 'idée principale', translation: '主旨', phonetic: '' },
+          { word: 'arguments pour / contre', translation: '支持/反对论点', phonetic: '' },
+          { word: 'interview', translation: '采访', phonetic: '' }
+        ],
+        grammar: { title: '听力 2 步法：先读题 → 抓论点标记词', examples: ['Tout d\'abord… Ensuite… Enfin…（结构）', 'Mais / Pourtant / Par contre…（反論）'] },
+        dialogue: [
+          { fr: 'J\'oublie l\'idée générale quand je prends des notes.', zh: '我记笔记的时候就忘了主旨。' },
+          { fr: 'Ne notez que les mots-clés : le reste viendra à l\'esprit.', zh: '只记关键词：剩下的会自动浮现。' }
+        ]
+      },
+      {
+        id: 'delf-3', title: 'Compréhension écrite & Production écrite : 辩证写作', type: 'writing', duration: 45,
+        vocabulary: [
+          { word: 'argumenter / réfuter', translation: '论证 / 反驳', phonetic: '' },
+          { word: 'opinion / contre-opinion', translation: '观点 / 反观点', phonetic: '' },
+          { word: 'plan dialectique', translation: '辩证结构（正→反→合）', phonetic: '' }
+        ],
+        grammar: { title: '写作模板：Thèse → Antithèse → Synthèse（三段式）', examples: ['Si d\'un côté…, d\'un autre côté… Pour conclure…'] },
+        dialogue: [
+          { fr: 'Je n\'arrive pas à écrire 250 mots en une heure.', zh: '我无法在1小时内写满250词。' },
+          { fr: 'Préparez 4 connecteurs, 1 paragraphe = 1 argument → ça coule de source.', zh: '准备4个连接词，1段=1个论点→自然流淌。' }
+        ]
+      },
+      {
+        id: 'delf-4', title: 'Production orale : 10 分钟 exposé 结构', type: 'speaking', duration: 45,
+        vocabulary: [
+          { word: 'plan I. II. III.', translation: '结构提纲（罗马数字）', phonetic: '' },
+          { word: 'introduction', translation: '引言（hook→sujet→plan）', phonetic: '' },
+          { word: 'exemples concrets', translation: '具体例子', phonetic: '' }
+        ],
+        grammar: { title: '结构模板：Introduction → Développement (3 arg) → Conclusion', examples: ['Intro : Hook + Annoncer le plan', 'Dev : 1 argument = 1 paragraphe + exemple concret'] },
+        dialogue: [
+          { fr: 'Je bloque souvent à l\'introduction.', zh: '我经常卡在开头。' },
+          { fr: 'Commencez par une question ou une citation. Exemple : Saviez-vous que... ?', zh: '用一个问题或一句引用开头。比如：你知道……吗？' }
+        ]
+      },
+      {
+        id: 'delf-5', title: 'Production orale : 10 分钟 débat 技巧', type: 'speaking', duration: 45,
+        vocabulary: [
+          { word: 'être d\'accord / pas d\'accord', translation: '同意 / 不同意', phonetic: '' },
+          { word: 'relever un contre-exemple', translation: '举出反例', phonetic: '' },
+          { word: 'puisque / car / étant donné que', translation: '因为（多种表达）', phonetic: '' }
+        ],
+        grammar: { title: '辩论连接词 + 反驳语料', examples: ['Je comprends votre point, toutefois…', 'Ce serait vrai si X, mais en réalité Y…'] },
+        dialogue: [
+          { fr: 'Que dire si on me contredit sur mon exemple ?', zh: '如果对方反驳我的例子怎么办？' },
+          { fr: 'Souriez et donnez un autre exemple. L\'essentiel est la structure, pas l\'exemple.', zh: '微笑，再举另一个例子。关键是结构，不是例子本身。' }
+        ]
+      },
+      {
+        id: 'delf-6', title: 'DELF B2 全科模考 & 批改复盘', type: 'speaking', duration: 50,
+        vocabulary: [
+          { word: 'bilan', translation: '复盘', phonetic: '' },
+          { word: 'points forts / points faibles', translation: '强项 / 弱项', phonetic: '' },
+          { word: 'auto-correction', translation: '自我纠正', phonetic: '' }
+        ],
+        grammar: { title: '考前一周节奏：1 套模考 + 逐题复盘（≥ 3 遍）', examples: ['J+7 : 模考 1', 'J+3 : 模考 2 + 弱点强化', 'J-1 : 1 范文 + 1 口语提纲'] },
+        dialogue: [
+          { fr: 'Que faire la veille de l\'examen ?', zh: '考试前一天做什么？' },
+          { fr: 'Révision légère, bonne nuit, et une bonne alimentation. Le jour J, c\'est la confiance qui gagne.', zh: '轻度复习，良好睡眠，好好吃饭。考试当天，信心是胜利的关键。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'de-testdaf',
+    language: 'de',
+    languageName: '德语',
+    level: 'exam',
+    levelName: '德福 TestDaF 4×4 冲刺',
+    title: '德福 TestDaF 4×4 冲刺班（德福高频主题 + 图表写作 + 口语表达）',
+    description: '德福 4 科 Lesen / Hören / Schreiben / Sprechen 全面突破，目标：4×4（每项≥TDN 4）',
+    cover: '🏰',
+    color: 'from-amber-700 to-red-800',
+    lessons: [
+      {
+        id: 'testdaf-1', title: '德福 TestDaF 全面解析 + 8 周备考路线图', type: 'strategy', duration: 35,
+        vocabulary: [
+          { word: 'TDN 3 / 4 / 5', translation: '德福成绩等级（DaF 3/4/5）', phonetic: '' },
+          { word: 'Prüfungsbereiche LV / HV / SA / MA', translation: '考试部分：阅读/听力/写作/口语', phonetic: '' },
+          { word: 'Universität / Hochschule / Studium', translation: '大学/高等学院/学业（德福高频主题）', phonetic: '' }
+        ],
+        grammar: { title: '目标：4×4 = 每项至少 TDN 4（DSH-2 水平）', examples: ['第1-4周：主题词汇+范文', '第5-6周：模考 1-2 套', '第7-8周：错题复盘 + 冲刺'] },
+        dialogue: [
+          { de: 'Was ist wichtiger bei TestDaF - Spezialwörter oder Struktur?', zh: '德福备考更重要的是——专业词汇还是结构？' },
+          { de: 'Struktur zuerst! Fachvokabular kommt im Training automatisch hinzu.', zh: '结构优先！专业词汇在训练中会自然增加。' }
+        ]
+      },
+      {
+        id: 'testdaf-2', title: 'Leseverstehen：文本类型 × 3（大学网站/报刊/书评）', type: 'reading', duration: 40,
+        vocabulary: [
+          { word: 'Bewerbung / Zulassung', translation: '申请 / 录取', phonetic: '' },
+          { word: 'Studiengang', translation: '大学专业', phonetic: '' },
+          { word: 'Leserbrief / Buchbesprechung', translation: '读者信 / 书评', phonetic: '' }
+        ],
+        grammar: { title: '答题策略：先题后文，关键词定位', examples: ['第一部分：找信息（快速扫描）', '第二部分：匹配段落与陈述', '第三部分：Ja / Nein / Text sagt dazu nichts'] },
+        dialogue: [
+          { de: 'Lesen 3 Text sagt dazu nichts — ist das wie IELTS NG?', zh: '阅读第三部分 "文中未提" 就像雅思的NOT GIVEN吗？' },
+          { de: 'Genau. Wenn es keine Belege gibt, wähle "...dazu nichts", auch wenn du es logisch vermutest.', zh: '完全正确。如果没有证据，就选文中未提，即使你逻辑上推测。' }
+        ]
+      },
+      {
+        id: 'testdaf-3', title: 'Hörverstehen：Mitschnitt 1/2/3 抓关键词', type: 'listening', duration: 40,
+        vocabulary: [
+          { word: 'Mitschnitt', translation: '录音（德福听力 3 种录音）', phonetic: '' },
+          { word: 'Interview / Dialog', translation: '访谈 / 对话', phonetic: '' },
+          { word: 'Redewendung', translation: '惯用语', phonetic: '' }
+        ],
+        grammar: { title: '3 步法：先读题 → 预测 → 记笔记关键词', examples: ['Mitschnitt 1：每日校园广播（2遍）', 'Mitschnitt 2：多人讨论（1遍！）', 'Mitschnitt 3：学术采访（2遍）'] },
+        dialogue: [
+          { de: 'Mitschnitt 2 ist nur einmal — ich vergesse sofort!', zh: '录音2只放一遍——我马上就忘！' },
+          { de: 'Schreibe Stichwörter, keine Sätze. 4-5 Wörter pro Antwort reichen!', zh: '只写关键词，不写句子。每个答案4-5个词足够！' }
+        ]
+      },
+      {
+        id: 'testdaf-4', title: 'Schriftlicher Ausdruck：Grafikbeschreibung + Stellungnahme', type: 'writing', duration: 45,
+        vocabulary: [
+          { word: 'Grafikbeschreibung', translation: '图表描述', phonetic: '' },
+          { word: 'Stellungnahme', translation: '立场观点', phonetic: '' },
+          { word: 'Überleitung', translation: '过渡句', phonetic: '' }
+        ],
+        grammar: { title: '写作结构：Einleitung → Grafik → Argumente → Fazit', examples: ['Grafik：Thema → Quelle → Überblick → Daten → Auswertung', 'Argumente：Pro und Contra mit Beispiel → eigene Meinung'] },
+        dialogue: [
+          { de: 'Muss ich die Grafik bis ins Detail beschreiben?', zh: '我需要把图表描述得非常细节吗？' },
+          { de: 'Nein! Beschreibe Haupttrends, Extremwerte und Vergleiche.', zh: '不！只描述主要趋势、极端值和对比。' }
+        ]
+      },
+      {
+        id: 'testdaf-5', title: 'Mündlicher Ausdruck：Aufgaben 1-7 答题模板', type: 'speaking', duration: 45,
+        vocabulary: [
+          { word: 'Hinweis / Plan', translation: '提示和提纲（每题前30秒准备）', phonetic: '' },
+          { word: 'Meinung äußern', translation: '表达观点', phonetic: '' },
+          { word: 'Vorschlag / Empfehlung', translation: '提议 / 推荐', phonetic: '' }
+        ],
+        grammar: { title: '7 题结构模板（全部背熟）：Hallo → Thema → Punkt 1/2/3 → Abschluss', examples: ['Aufgabe 1 : 正式咨询图书馆 → 敬语', 'Aufgabe 3 : Grafik beschreiben → Thema, Quelle, Trends', 'Aufgabe 4 : Pro/Contra 立场'] },
+        dialogue: [
+          { de: 'Ich rede zu schnell und habe Fehler!', zh: '我讲太快并且犯错！' },
+          { de: 'Pausen machen ist OK! Und Fehler sind normal — Korrektur in gleichen Satz ist erlaubt.', zh: '停顿一下没关系！错误很正常——在同一句中自我纠正是允许的。' }
+        ]
+      },
+      {
+        id: 'testdaf-6', title: '德福高频主题：Universität / Beruf / Umwelt / Digitalisierung', type: 'vocabulary', duration: 45,
+        vocabulary: [
+          { word: 'Studiengebühren', translation: '大学学费', phonetic: '' },
+          { word: 'Fernstudium', translation: '远程学习', phonetic: '' },
+          { word: 'Umweltschutz / Nachhaltigkeit', translation: '环保 / 可持续', phonetic: '' },
+          { word: 'Digitalisierung', translation: '数字化', phonetic: '' }
+        ],
+        grammar: { title: '每主题 10 句固定表达（直接背）', examples: ['Die Digitalisierung verändert unsere Arbeitswelt grundlegend.', 'Die Nachhaltigkeit ist die größte Herausforderung der Zukunft.'] },
+        dialogue: [
+          { de: 'Welches Thema kommt am häufigsten bei TestDaF?', zh: '德福最常考什么主题？' },
+          { de: 'Universität, Studium und das Lernen an sich! Dann Umwelt, Digitalisierung und Familien.', zh: '大学、学业本身！然后是环境、数字化和家庭。' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'es-dele-b2',
+    language: 'es',
+    languageName: '西班牙语',
+    level: 'exam',
+    levelName: 'DELE B2 冲刺',
+    title: '西班牙语 DELE B2 冲刺班（Cronómetro DELE + 全题型写作口语模考）',
+    description: 'DELE B2 四科 Comprensión / Expresión 全面突破，虚拟式 + 条件式 + 表达结构，目标：60/100 通过',
+    cover: '💃🏻',
+    color: 'from-red-700 via-orange-500 to-yellow-600',
+    lessons: [
+      {
+        id: 'esdele-1', title: 'DELE B2 结构、评分 & 3 个月备考路线', type: 'strategy', duration: 32,
+        vocabulary: [
+          { word: 'Puntuación total: 100 puntos', translation: '总分 100 分（及格 ≥60，两部分各 ≥30）', phonetic: '' },
+          { word: 'Destrezas 1', translation: '技能组 1：阅读+写作（60%）', phonetic: '' },
+          { word: 'Destrezas 2', translation: '技能组 2：听力+口语（40%）', phonetic: '' }
+        ],
+        grammar: { title: '及格线：Destrezas 1 ≥ 30 / 60，Destrezas 2 ≥ 20 / 40', examples: ['月 1：语法+词汇基础', '月 2：写作+口语模板', '月 3：5 套 Cronómetro 模考+复盘'] },
+        dialogue: [
+          { es: '¿Aprobé DELE si saqué 62 total pero 28 en destreza 1?', zh: '如果总分62但技能组1只有28，算通过吗？' },
+          { es: '¡No! Hay que superar el mínimo EN CADA DESTREZA (30/60 + 20/40).', zh: '不算！每一大组都必须超最低（30/60 和 20/40）。' }
+        ]
+      },
+      {
+        id: 'esdele-2', title: 'Comprensión de lectura：Tarea 1-4 全题型攻略', type: 'reading', duration: 40,
+        vocabulary: [
+          { word: 'idea principal / idea secundaria', translation: '主旨 / 细节', phonetic: '' },
+          { word: 'definición / sinonimia', translation: '词义理解 / 同义词', phonetic: '' },
+          { word: 'insertar oraciones', translation: '句子插入（Tarea 3）', phonetic: '' }
+        ],
+        grammar: { title: '4 大题型：先题干 → 关键词定位 + 同义改写', examples: ['Tarea 3（6选5）：前後文照应 + 连接词', 'Tarea 4（专家意见配对）：捕捉立场词（Estoy a favor de... / Por el contrario）'] },
+        dialogue: [
+          { es: 'Tarea 3 me sale fatal, ¿truco?', zh: 'Tarea 3（句子插入）做得很差，有技巧吗？' },
+          { es: 'Lee la oración que vas a insertar: NO debe romper la lógica (referentes, conectores, tema de la oración previa y posterior).', zh: '先读要插入的句子：不能打断前后句子的逻辑（指代、连接词、主题）。' }
+        ]
+      },
+      {
+        id: 'esdele-3', title: 'Comprensión auditiva：Entrevista / 不选 + Tarea 5 选项', type: 'listening', duration: 40,
+        vocabulary: [
+          { word: 'entrevista', translation: '采访', phonetic: '' },
+          { word: 'tono / actitud del hablante', translation: '说话人语气 / 态度', phonetic: '' },
+          { word: 'información específica', translation: '具体信息', phonetic: '' }
+        ],
+        grammar: { title: '听力 4 步法：预读选项 → 预判 → 关键词 → 同义改写', examples: ['Tarea 3（观点+人物匹配）：边听边打草稿，名字写下来'] },
+        dialogue: [
+          { es: 'Escuchan dos veces en DELE, ¿verdad?', zh: 'DELE听力放两遍，对吗？' },
+          { es: 'Tareas 1, 3 y 4 sí, pero Tarea 2 SÓLO UNA VEZ. ¡Ojo!', zh: 'T1,3,4放两遍，但T2只放一遍。注意！' }
+        ]
+      },
+      {
+        id: 'esdele-4', title: 'Expresión escrita：Carta al director + Ensayo argumentativo', type: 'writing', duration: 45,
+        vocabulary: [
+          { word: 'carta formal al director', translation: '致编辑信（Tarea1）', phonetic: '' },
+          { word: 'ensayo de opinión / argumentativo', translation: '观点/议论文（Tarea2）', phonetic: '' },
+          { word: 'tesis / antítesis / síntesis', translation: '正 / 反 / 合（经典辩证结构）', phonetic: '' }
+        ],
+        grammar: { title: '写作结构（Tarea1：150-180词；Tarea2：180-220词）', examples: ['Tarea2：Introducción (40词) → 2× Argumentos (80词) → Contra(40) → Conclusión(40)'] },
+        dialogue: [
+          { es: '¿Debo escribir de más o de menos?', zh: '应该写多还是写少？' },
+          { es: '¡Ni un solo párrafo fuera de rango! Si escribes más, no lo lean. ¡Manténte entre mínimo y máximo + 10 palabras!', zh: '一字不可超出范围！写多了考官直接不看。保持在最小值和最大值+10词之间！' }
+        ]
+      },
+      {
+        id: 'esdele-5', title: 'Expresión e interacción orales：4 任务全流程', type: 'speaking', duration: 45,
+        vocabulary: [
+          { word: 'Tarea 1: Relato de fotos', translation: 'T1：图片描述（2-3 min）', phonetic: '' },
+          { word: 'Tarea 2: Diálogo con el examinador', translation: 'T2：与考官对话（2 min）', phonetic: '' },
+          { word: 'Tarea 3: Elección de tema (3 opciones)', translation: 'T3：选主题（2-3 min 独白）', phonetic: '' },
+          { word: 'Tarea 4: Debate sobre T3', translation: 'T4：围绕 T3 辩论（3 min）', phonetic: '' }
+        ],
+        grammar: { title: '口语 4 任务时间分配 + 连接词', examples: ['T1 图片：En primer plano / Al fondo / A la izquierda...', 'T4 辩论：Estoy de acuerdo, sin embargo / Por un lado / Por otro lado'] },
+        dialogue: [
+          { es: 'Tengo miedo de no saber seguir el debate en T4.', zh: '我担心T4辩论跟不上。' },
+          { es: 'Si no entiendes, pide repetición: "¿Podría repetirlo, por favor?". ¡Esto no baja puntos!', zh: '如果没懂，请求重复：「麻烦重复一下好吗？」。这不扣分！' }
+        ]
+      },
+      {
+        id: 'esdele-6', title: 'DELE B2 全科目模考 + 虚拟式 & 条件式综合练习', type: 'speaking', duration: 50,
+        vocabulary: [
+          { word: 'Subjuntivo + indicativo', translation: '虚拟式+直陈式（B2核心）', phonetic: '' },
+          { word: 'Condicional simple / compuesto', translation: '简单 / 复合条件式', phonetic: '' },
+          { word: 'Ojalá / Dudar que / Es probable que', translation: '触发虚拟式的常见短语', phonetic: '' }
+        ],
+        grammar: { title: '最后一周：模考 1 套 × 3 遍 → 错题 & 范文深度复盘', examples: ['J + 7: Cronómetro Test 5', 'J + 3: Test 6 + 纠正所有 Subjuntivo 错误', 'J-1: 口语 T3 5 套提纲 + 作文 2 篇重写'] },
+        dialogue: [
+          { es: '¿Qué haría usted el día antes?', zh: '换作您，考前一天会做什么？' },
+          { es: 'Salir a caminar, dormir 8 horas y desayuno completo. La confianza es el 50% del examen. ¡Ánimo!', zh: '去散步，睡8小时，吃一顿丰盛早餐。信心是考试的50%！加油！' }
+        ]
+      }
+    ]
   }
 ];
 
-// ===================== 元数据注入：CEFR / JLPT / TOPIK 难度对标 =====================
+// ===================== 元数据注入：CEFR / JLPT / TOPIK / DELF / 德福 难度对标 =====================
 // 难度对标（按语种和级别自动标注）
 const DIFFICULTY_MAP = {
-  en: { beginner: 'A1', intermediate: 'B1', advanced: 'C1' },
-  ja: { beginner: 'N5', intermediate: 'N4', advanced: 'N3' },
-  ko: { beginner: 'TOPIK I-1', intermediate: 'TOPIK I-2', advanced: 'TOPIK II-4' }
+  en: { beginner: 'A1', intermediate: 'B1', advanced: 'C1', exam: 'IELTS 6.5 (B2+)' },
+  ja: { beginner: 'N5', intermediate: 'N4', advanced: 'N3', exam: 'JLPT N2 (B2)' },
+  ko: { beginner: 'TOPIK I-1', intermediate: 'TOPIK I-2', advanced: 'TOPIK II-4', exam: 'TOPIK II-4 (B2)' },
+  fr: { beginner: 'A1', intermediate: 'B1', advanced: 'C1', exam: 'DELF B2' },
+  de: { beginner: 'A1', intermediate: 'B1', advanced: 'C1', exam: 'TestDaF 4×4' },
+  es: { beginner: 'A1', intermediate: 'B1', advanced: 'C1', exam: 'DELE B2' }
 };
 // 学习目标标签（按课程主题智能识别）
 const GOAL_KEYWORDS = {
-  travel: ['购物', '交通', '旅行', '度假', '餐厅', '就餐', '天气', '外出', '出行', '购物场景'],
-  business: ['商务', '工作', '职场', '谈判', '电话', '邮件', '写作', '新闻', '公共', '演讲', '报告'],
-  study: ['语法', '写作', '赏析', '深入', '高级', '表达', '文化', '文学', '考', 'TOPIK', 'JLPT'],
-  conversation: ['问候', '介绍', '对话', '家庭', '成员', '兴趣', '娱乐', '社交', '流行']
+  travel: ['购物', '交通', '旅行', '度假', '餐厅', '就餐', '天气', '外出', '出行', '购物场景', '机场', '酒店'],
+  business: ['商务', '工作', '职场', '谈判', '电话', '邮件', '写作', '新闻', '公共', '演讲', '报告', '合同'],
+  study: ['语法', '写作', '赏析', '深入', '高级', '表达', '文化', '文学', '考', 'TOPIK', 'JLPT', 'IELTS', '雅思', 'DELF', 'DALF', '德福', 'TestDaF', 'DELE', '备考', '冲刺', '真题', '模考', '写作批改', '口语模拟'],
+  conversation: ['问候', '介绍', '对话', '家庭', '成员', '兴趣', '娱乐', '社交', '流行', '情景']
 };
 // 教材版本映射
 const TEXTBOOK_MAP = {
-  en: { beginner: '新概念英语 第一册', intermediate: '新概念英语 第二册', advanced: '剑桥英语高级' },
-  ja: { beginner: '标准日本语 初级上', intermediate: '标准日本语 初级下', advanced: '标准日本语 中级' },
-  ko: { beginner: '首尔大学韩国语 1', intermediate: '首尔大学韩国语 2', advanced: '首尔大学韩国语 3' }
+  en: { beginner: '新概念英语 第一册', intermediate: '新概念英语 第二册', advanced: '剑桥英语高级', exam: '剑桥 IELTS 15-19 真题精讲' },
+  ja: { beginner: '标准日本语 初级上', intermediate: '标准日本语 初级下', advanced: '标准日本语 中级', exam: '新完全掌握 JLPT N2 系列' },
+  ko: { beginner: '首尔大学韩国语 1', intermediate: '首尔大学韩国语 2', advanced: '首尔大学韩国语 3', exam: 'TOPIK 官方真题 66-72 回解析' },
+  fr: { beginner: 'Le Nouveau Taxi A1', intermediate: 'Le Nouveau Taxi B1', advanced: 'Le Nouveau Taxi C1', exam: 'DELF B2 250 真题集' },
+  de: { beginner: 'Menschen A1', intermediate: 'Menschen B1', advanced: 'Menschen C1', exam: '德福高频主题 + Mit Erfolg zum TestDaF' },
+  es: { beginner: 'Aula Internacional 1 (A1)', intermediate: 'Aula Internacional 3 (B1)', advanced: 'Aula Internacional 5 (C1)', exam: 'Cronómetro DELE B2 + 真题汇编' }
 };
 
 function detectGoals(course) {
@@ -1211,12 +2425,12 @@ const SCENARIO_DIALOGS = {
     icon: '☕',
     bg: 'from-amber-100 to-orange-100',
     steps: [
-      { speaker: '店员', en: 'Welcome! What can I get for you today?', ja: 'いらっしゃいませ！何になさいますか？', ko: '어서오세요! 주문하시겠어요?', zh: '欢迎光临！请问需要点什么？' },
-      { speaker: '我',  en: 'I would like a cappuccino, please.', ja: 'カプチーノをください。', ko: '카푸치노 주세요.', zh: '我想要一杯卡布奇诺。' },
-      { speaker: '店员', en: 'Sure. For here or to go?', ja: '店内でお召し上がりですか？お持ち帰りですか？', ko: '매장에서 드릴까요? 가져가실까요?', zh: '好的，堂食还是外带？' },
-      { speaker: '我',  en: 'For here, thank you.', ja: 'ここで食べます、ありがとう。', ko: '매장에서요, 감사합니다.', zh: '堂食，谢谢。' },
-      { speaker: '店员', en: 'Anything else?', ja: '他にご注文はありますか？', ko: '더 필요하신 거 있으세요?', zh: '还需要别的吗？' },
-      { speaker: '我',  en: 'A chocolate croissant, please.', ja: 'チョコクロワッサンもください。', ko: '초콜릿 크루아상도 주세요.', zh: '再来一个巧克力可颂。' }
+      { speaker: '店员', en: 'Welcome! What can I get for you today?', ja: 'いらっしゃいませ！何になさいますか？', ko: '어서오세요! 주문하시겠어요?', zh: '欢迎光临！请问需要点什么？', fr: 'Bienvenue ! Qu\'est-ce que je vous sers aujourd\'hui ?', de: 'Willkommen! Was darf es heute sein?', es: '¡Bienvenido! ¿Qué le pongo hoy?' },
+      { speaker: '我',  en: 'I would like a cappuccino, please.', ja: 'カプチーノをください。', ko: '카푸치노 주세요.', zh: '我想要一杯卡布奇诺。', fr: 'Je voudrais un cappuccino, s\'il vous plaît.', de: 'Ich hätte gerne einen Cappuccino, bitte.', es: 'Quisiera un cappuccino, por favor.' },
+      { speaker: '店员', en: 'Sure. For here or to go?', ja: '店内でお召し上がりですか？お持ち帰りですか？', ko: '매장에서 드릴까요? 가져가실까요?', zh: '好的，堂食还是外带？', fr: 'Bien sûr. Sur place ou à emporter ?', de: 'Natürlich. Hier oder zum Mitnehmen?', es: 'Claro. ¿Para tomar aquí o para llevar?' },
+      { speaker: '我',  en: 'For here, thank you.', ja: 'ここで食べます、ありがとう。', ko: '매장에서요, 감사합니다.', zh: '堂食，谢谢。', fr: 'Sur place, merci.', de: 'Hier, danke.', es: 'Para tomar aquí, gracias.' },
+      { speaker: '店员', en: 'Anything else?', ja: '他にご注文はありますか？', ko: '더 필요하신 거 있으세요?', zh: '还需要别的吗？', fr: 'Autre chose ?', de: 'Noch etwas?', es: '¿Algo más?' },
+      { speaker: '我',  en: 'A chocolate croissant, please.', ja: 'チョコクロワッサンもください。', ko: '초콜릿 크루아상도 주세요.', zh: '再来一个巧克力可颂。', fr: 'Un croissant au chocolat, s\'il vous plaît.', de: 'Ein Schokocroissant dazu, bitte.', es: 'Un cruasán de chocolate, por favor.' }
     ]
   },
   airport: {
@@ -1224,12 +2438,12 @@ const SCENARIO_DIALOGS = {
     icon: '✈️',
     bg: 'from-sky-100 to-blue-100',
     steps: [
-      { speaker: '职员', en: 'Good morning. May I see your passport and ticket?', ja: 'おはようございます。パスポートとチケットを拝見します。', ko: '좋은 아침입니다. 여권과 티켓을 보여주실 수 있나요?', zh: '早上好，请出示您的护照和机票。' },
-      { speaker: '我',  en: 'Here you are.', ja: 'はい、どうぞ。', ko: '여기 있습니다.', zh: '给您。' },
-      { speaker: '职员', en: 'How many bags will you check in?', ja: 'お預けになる荷物はいくつですか？', ko: '위탁하실 짐은 몇 개인가요?', zh: '您要托运几件行李？' },
-      { speaker: '我',  en: 'One suitcase, please.', ja: 'スーツケース1つをお願いします。', ko: '캐리어 1개요.', zh: '一件行李箱。' },
-      { speaker: '职员', en: 'Your gate is B12. Boarding starts at 10:30.', ja: '搭乗口はB12、搭乗開始は10時30分です。', ko: '탑승구는 B12, 탑승 시작은 10시 30분입니다.', zh: '您的登机口是B12，10:30开始登机。' },
-      { speaker: '我',  en: 'Thank you very much!', ja: 'どうもありがとうございました！', ko: '정말 감사합니다!', zh: '非常感谢！' }
+      { speaker: '职员', en: 'Good morning. May I see your passport and ticket?', ja: 'おはようございます。パスポートとチケットを拝見します。', ko: '좋은 아침입니다. 여권과 티켓을 보여주실 수 있나요?', zh: '早上好，请出示您的护照和机票。', fr: 'Bonjour. Puis-je voir votre passeport et votre billet ?', de: 'Guten Morgen. Darf ich Ihren Pass und Ihr Ticket sehen?', es: 'Buenos días. ¿Puedo ver su pasaporte y su billete?' },
+      { speaker: '我',  en: 'Here you are.', ja: 'はい、どうぞ。', ko: '여기 있습니다.', zh: '给您。', fr: 'Tenez.', de: 'Bitte sehr.', es: 'Aquí tiene.' },
+      { speaker: '职员', en: 'How many bags will you check in?', ja: 'お預けになる荷物はいくつですか？', ko: '위탁하실 짐은 몇 개인가요?', zh: '您要托运几件行李？', fr: 'Combien de bagages enregistrez-vous ?', de: 'Wie viele Taschen möchten Sie einchecken?', es: '¿Cuántas maletas va a facturar?' },
+      { speaker: '我',  en: 'One suitcase, please.', ja: 'スーツケース1つをお願いします。', ko: '캐리어 1개요.', zh: '一件行李箱。', fr: 'Une valise, s\'il vous plaît.', de: 'Einen Koffer, bitte.', es: 'Una maleta, por favor.' },
+      { speaker: '职员', en: 'Your gate is B12. Boarding starts at 10:30.', ja: '搭乗口はB12、搭乗開始は10時30分です。', ko: '탑승구는 B12, 탑승 시작은 10시 30분입니다.', zh: '您的登机口是B12，10:30开始登机。', fr: 'Votre porte est B12. L\'embarquement commence à 10h30.', de: 'Ihr Gate ist B12. Boarding beginnt um 10:30 Uhr.', es: 'Su puerta es la B12. El embarque empieza a las 10:30.' },
+      { speaker: '我',  en: 'Thank you very much!', ja: 'どうもありがとうございました！', ko: '정말 감사합니다!', zh: '非常感谢！', fr: 'Merci beaucoup !', de: 'Vielen Dank!', es: '¡Muchas gracias!' }
     ]
   },
   office: {
@@ -1237,11 +2451,11 @@ const SCENARIO_DIALOGS = {
     icon: '💼',
     bg: 'from-slate-100 to-indigo-100',
     steps: [
-      { speaker: '同事', en: 'Good morning! How was your weekend?', ja: 'おはよう！週末はどうだった？', ko: '좋은 아침! 주말은 어땠어?', zh: '早上好！周末过得怎么样？' },
-      { speaker: '我',  en: 'Pretty good, I recharged a lot.', ja: '元気だったよ、ゆっくり休めた。', ko: '꽤 좋았어, 푹 쉬었거든.', zh: '挺好的，我好好休息了一下。' },
-      { speaker: '同事', en: 'Are you ready for the meeting at 10?', ja: '10時の会議の準備できた？', ko: '10시 회의 준비됐어?', zh: '10点的会议准备好了吗？' },
-      { speaker: '我',  en: 'Almost done. I will send the slides in a minute.', ja: 'あと少し。すぐスライド送るね。', ko: '거의 다 됐어. 슬라이드 바로 보낼게.', zh: '差不多了，我马上发幻灯片。' },
-      { speaker: '同事', en: 'Great, see you in the meeting room.', ja: '了解、会議室で会おう。', ko: '좋아, 회의실에서 보자.', zh: '好的，会议室见。' }
+      { speaker: '同事', en: 'Good morning! How was your weekend?', ja: 'おはよう！週末はどうだった？', ko: '좋은 아침! 주말은 어땠어?', zh: '早上好！周末过得怎么样？', fr: 'Bonjour ! Comment s\'est passé ton week-end ?', de: 'Guten Morgen! Wie war dein Wochenende?', es: '¡Buenos días! ¿Qué tal el fin de semana?' },
+      { speaker: '我',  en: 'Pretty good, I recharged a lot.', ja: '元気だったよ、ゆっくり休めた。', ko: '꽤 좋았어, 푹 쉬었거든.', zh: '挺好的，我好好休息了一下。', fr: 'Très bien, j\'ai beaucoup rechargé les batteries.', de: 'Sehr gut, ich habe mich richtig erholt.', es: 'Muy bien, he recuperado muchas energías.' },
+      { speaker: '同事', en: 'Are you ready for the meeting at 10?', ja: '10時の会議の準備できた？', ko: '10시 회의 준비됐어?', zh: '10点的会议准备好了吗？', fr: 'Tu es prêt pour la réunion de 10h ?', de: 'Bist du bereit für das Meeting um 10 Uhr?', es: '¿Estás listo para la reunión de las 10?' },
+      { speaker: '我',  en: 'Almost done. I will send the slides in a minute.', ja: 'あと少し。すぐスライド送るね。', ko: '거의 다 됐어. 슬라이드 바로 보낼게.', zh: '差不多了，我马上发幻灯片。', fr: 'Presque fini. J\'envoie les slides dans une minute.', de: 'Fast fertig. Ich schicke die Präsentation sofort.', es: 'Casi terminado. Envío las diapositivas en un minuto.' },
+      { speaker: '同事', en: 'Great, see you in the meeting room.', ja: '了解、会議室で会おう。', ko: '좋아, 회의실에서 보자.', zh: '好的，会议室见。', fr: 'Parfait, on se voit dans la salle de réunion.', de: 'Super, bis gleich im Besprechungsraum.', es: 'Genial, nos vemos en la sala de reuniones.' }
     ]
   }
 };

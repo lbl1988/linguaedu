@@ -39,23 +39,145 @@
     const getStored = (prefix, id) => prefix === 'course' ? _store.courses[id] : _store.lessons[id];
 
     const $ = (id) => document.getElementById(id);
+
+    // ─── 内嵌兜底数据：Static Site / 数据库未配置时，无需后端 API 也能浏览课程 ───
+    const FALLBACK_COURSES = [
+      // 英语 6 级 + 雅思备考
+      { id:'en-beginner', language:'en', languageName:'英语', level:'beginner', levelName:'入门级 (A1)',
+        title:'英语零基础入门', description:'从字母和简单问候语开始，构建英语基础（CEFR A1）', cover:'📘',
+        color:'from-blue-400 to-blue-600', durationCategory:'medium', textbook:'通用英语',
+        goals:['conversation','travel','study'], lessons:[{id:'en-b-1',title:'字母与发音',type:'pronunciation',duration:15},{id:'en-b-2',title:'日常问候',type:'conversation',duration:20},{id:'en-b-3',title:'数字与时间',type:'numbers',duration:18},{id:'en-b-4',title:'购物场景',type:'scenario',duration:25}] },
+      { id:'en-elementary', language:'en', languageName:'英语', level:'elementary', levelName:'初级 (A2)',
+        title:'生活英语会话 A2', description:'日常 50+ 高频场景会话，轻松应对衣食住行', cover:'📗',
+        color:'from-sky-400 to-cyan-500', durationCategory:'medium', textbook:'通用英语',
+        goals:['conversation','travel'], lessons:[{id:'en-a2-1',title:'问路指路',duration:20},{id:'en-a2-2',title:'酒店入住',duration:25},{id:'en-a2-3',title:'点餐用语',duration:20}] },
+      { id:'en-intermediate', language:'en', languageName:'英语', level:'intermediate', levelName:'中级 (B1)',
+        title:'职场英语进阶 B1', description:'商务邮件、会议、面试、电话沟通全场景', cover:'📙',
+        color:'from-indigo-400 to-violet-500', durationCategory:'long', textbook:'商务英语',
+        goals:['business','study'], lessons:[{id:'en-b1-1',title:'邮件写作规范',duration:30},{id:'en-b1-2',title:'主持会议',duration:35},{id:'en-b1-3',title:'面试高频问答',duration:40}] },
+      { id:'en-upper', language:'en', languageName:'英语', level:'upper', levelName:'中高级 (B2)',
+        title:'通用英语 B2 进阶（雅思 6.0+ 基础）', description:'长难句精读、议论文写作、口语流利表达', cover:'📕',
+        color:'from-purple-500 to-fuchsia-500', durationCategory:'long', textbook:'通用英语',
+        goals:['study','business'], lessons:[{id:'en-b2-1',title:'学术词汇',duration:30},{id:'en-b2-2',title:'议论文结构',duration:45},{id:'en-b2-3',title:'即兴演讲技巧',duration:40}] },
+      { id:'en-ielts-65', language:'en', languageName:'英语', level:'exam', levelName:'雅思 6.5+ 备考',
+        title:'🎯 雅思 IELTS 6.5+ 冲刺班', description:'听说读写 4 科 × 剑雅真题精讲 + 3 次模考 + 大小作文批改', cover:'🎓',
+        color:'from-rose-500 to-red-600', durationCategory:'long', textbook:'剑桥雅思 15-19',
+        goals:['study','business'], lessons:[{id:'ielts-1',title:'听力 Section 1-4 技巧',duration:60},{id:'ielts-2',title:'阅读 True/False/NG 精讲',duration:60},{id:'ielts-3',title:'Task 1 图表作文',duration:75},{id:'ielts-4',title:'Task 2 议论文高分结构',duration:90},{id:'ielts-5',title:'口语 Part 1-3 真题串讲',duration:60},{id:'ielts-6',title:'第 1 次全真模考 + 解析',duration:180}] },
+      // 日语 5 级 + N2 备考
+      { id:'ja-n5', language:'ja', languageName:'日语', level:'beginner', levelName:'N5 入门',
+        title:'日语 N5 零基础入门', description:'五十音图 + ます形基础语法 + 1000 核心词', cover:'🇯🇵',
+        color:'from-pink-400 to-rose-500', durationCategory:'medium', textbook:'大家的日语',
+        goals:['study','conversation'], lessons:[{id:'ja-n5-1',title:'五十音图',duration:40},{id:'ja-n5-2',title:'は/が/を 助词',duration:30},{id:'ja-n5-3',title:'ます形动词',duration:35}] },
+      { id:'ja-n4', language:'ja', languageName:'日语', level:'elementary', levelName:'N4 初级',
+        title:'日语 N4 初级进阶', description:'て形/ない形/た形 三大活用 + 基础短文读解', cover:'🌸',
+        color:'from-fuchsia-400 to-pink-500', durationCategory:'medium', textbook:'新标准日本语',
+        goals:['study'], lessons:[{id:'ja-n4-1',title:'て形变化规则',duration:40},{id:'ja-n4-2',title:'ない形否定',duration:35},{id:'ja-n4-3',title:'受身形・使役形入门',duration:45}] },
+      { id:'ja-jlpt-n2', language:'ja', languageName:'日语', level:'exam', levelName:'JLPT N2 冲刺',
+        title:'🎯 日语能力考 JLPT N2 冲刺班', description:'N2 核心 6000 词 + 200 语法点 + 10 年真题精讲', cover:'⛩️',
+        color:'from-red-500 to-crimson-600', durationCategory:'long', textbook:'新完全掌握 N2',
+        goals:['study'], lessons:[{id:'n2-1',title:'文字词汇高频 1000 词',duration:90},{id:'n2-2',title:'语法 200 条速通',duration:120},{id:'n2-3',title:'读解 长文攻略',duration:90},{id:'n2-4',title:'听力 N1 级突破',duration:90},{id:'n2-5',title:'真题精讲 2023-2024',duration:180}] },
+      // 韩语 4 级 + TOPIK 4 备考
+      { id:'ko-1', language:'ko', languageName:'韩语', level:'beginner', levelName:'TOPIK 1 级',
+        title:'韩语 TOPIK 1 零基础', description:'韩字 40 音 + 基本阶/敬语 + 自我介绍', cover:'🇰🇷',
+        color:'from-indigo-500 to-blue-600', durationCategory:'medium', textbook:'延世韩国语',
+        goals:['conversation','study'], lessons:[{id:'ko-1-1',title:'한글 韩字 40 音',duration:40},{id:'ko-1-2',title:'입니다/이에요 终结词',duration:30},{id:'ko-1-3',title:'自我介绍',duration:25}] },
+      { id:'ko-2', language:'ko', languageName:'韩语', level:'elementary', levelName:'TOPIK 2 级',
+        title:'韩语 TOPIK 2 初级进阶', description:'助词体系 + 常用时态 + 生活对话', cover:'💜',
+        color:'from-violet-400 to-indigo-500', durationCategory:'medium', textbook:'延世韩国语 2',
+        goals:['conversation','travel'], lessons:[{id:'ko-2-1',title:'은/는/이/가 助词辨析',duration:40},{id:'ko-2-2',title:'过去时态 았/었',duration:35},{id:'ko-2-3',title:'餐厅点餐对话',duration:30}] },
+      { id:'ko-topik4', language:'ko', languageName:'韩语', level:'exam', levelName:'TOPIK 4 冲刺',
+        title:'🎯 TOPIK II 4 级冲刺班', description:'听力 60 分目标 + 阅读 60 分目标 + 写作 50+ 模板', cover:'🎖️',
+        color:'from-blue-600 to-indigo-700', durationCategory:'long', textbook:'TOPIK 官方真题 66-72 回',
+        goals:['study'], lessons:[{id:'topik4-1',title:'听力 新闻/访谈类精听',duration:75},{id:'topik4-2',title:'阅读 语法填空 200 题',duration:90},{id:'topik4-3',title:'写作 51-54 题模板',duration:100},{id:'topik4-4',title:'大作文结构与高级句式',duration:120},{id:'topik4-5',title:'真题模考 72 回解析',duration:180}] },
+      // 法德西考试备考专项（特色新增）
+      { id:'fr-a1', language:'fr', languageName:'法语', level:'beginner', levelName:'A1 入门',
+        title:'法语 A1 浪漫入门', description:'发音规则、名词阴阳性、问候与自我介绍', cover:'🇫🇷',
+        color:'from-blue-500 via-white to-red-500', durationCategory:'short', textbook:'Le Nouveau Taxi 1',
+        goals:['conversation','travel'], lessons:[{id:'fr-a1-1',title:'字母与发音规则',duration:30},{id:'fr-a1-2',title:'Bonjour ! 问候礼仪',duration:25},{id:'fr-a1-3',title:'Je suis... 自我介绍',duration:30}] },
+      { id:'fr-delf-b2', language:'fr', languageName:'法语', level:'exam', levelName:'DELF B2 备考',
+        title:'🎯 法语 DELF B2 证书备考班', description:'Compréhension orale/écrite + Production 4 科应试技巧', cover:'🗼',
+        color:'from-blue-600 to-indigo-700', durationCategory:'long', textbook:'DELF B2 250 真题',
+        goals:['study'], lessons:[{id:'delf-b2-1',title:'听力长访谈技巧',duration:80},{id:'delf-b2-2',title:'阅读议论文结构',duration:90},{id:'delf-b2-3',title:'写作议论文 250 词',duration:120},{id:'delf-b2-4',title:'口语 exposé+débat',duration:120}] },
+      { id:'de-a1', language:'de', languageName:'德语', level:'beginner', levelName:'A1 入门',
+        title:'德语 A1 精准入门', description:'名词三性四格、现在时变位、日常对话', cover:'🇩🇪',
+        color:'from-yellow-400 via-red-500 to-slate-800', durationCategory:'short', textbook:'Menschen A1',
+        goals:['travel','study'], lessons:[{id:'de-a1-1',title:'发音与名词阴阳性',duration:35},{id:'de-a1-2',title:'现在时动词变位',duration:40},{id:'de-a1-3',title:'Wohin? 方向介词',duration:30}] },
+      { id:'de-testdaf', language:'de', languageName:'德语', level:'exam', levelName:'德福 TDN4 备考',
+        title:'🎯 德福 TestDaF 4×4 备考', description:'Lesen/Hören/Schreiben/Sprechen 全四科 TDN4 目标', cover:'🏰',
+        color:'from-amber-600 to-slate-700', durationCategory:'long', textbook:'德福真题集 + 高频主题',
+        goals:['study'], lessons:[{id:'daf-1',title:'阅读科技类说明文',duration:70},{id:'daf-2',title:'听力 3 段录音技巧',duration:80},{id:'daf-3',title:'写作图表描述 + 论证',duration:120},{id:'daf-4',title:'口语 4 套 Aufgaben 模板',duration:100}] },
+      { id:'es-a1', language:'es', languageName:'西班牙语', level:'beginner', levelName:'A1 入门',
+        title:'西班牙语 A1 热情入门', description:'大舌音入门、ser/estar、拉美与西语区别', cover:'🇪🇸',
+        color:'from-red-500 to-yellow-500', durationCategory:'short', textbook:'Aula Internacional 1',
+        goals:['travel','conversation'], lessons:[{id:'es-a1-1',title:'发音与重音规则',duration:35},{id:'es-a1-2',title:'ser vs estar 双“是”',duration:40},{id:'es-a1-3',title:'Hola! 日常问候',duration:25}] },
+      { id:'es-dele-b2', language:'es', languageName:'西班牙语', level:'exam', levelName:'DELE B2 备考',
+        title:'🎯 西语 DELE B2 证书备考班', description:'DELE 官方真题全题型精讲 + 写作批改 + 口语模拟', cover:'💃',
+        color:'from-orange-500 to-red-600', durationCategory:'long', textbook:'DELE B2 Cronómetro',
+        goals:['study'], lessons:[{id:'dele-b2-1',title:'阅读 Tarea 1-4',duration:80},{id:'dele-b2-2',title:'听力 Tarea 1-5',duration:90},{id:'dele-b2-3',title:'写作邮件+议论文',duration:120},{id:'dele-b2-4',title:'口语 Tarea 1-3 模拟',duration:120}] }
+    ];
+    const FALLBACK_FILTERS = { textbooks: ['通用英语','商务英语','剑桥雅思 15-19','大家的日语','新标准日本语','新完全掌握 N2','延世韩国语','延世韩国语 2','TOPIK 官方真题 66-72 回','Le Nouveau Taxi 1','DELF B2 250 真题','Menschen A1','德福真题集 + 高频主题','Aula Internacional 1','DELE B2 Cronómetro'] };
+
+    // ─── 安全的 API 封装：解析失败或 404 时返回 fallback 数据 ───
+    function _safeJson(res) {
+      const ct = res.headers.get('content-type') || '';
+      if (!res.ok || !ct.includes('application/json')) {
+        throw new Error('API_NOT_AVAILABLE');
+      }
+      return res.json();
+    }
     const api = {
       async get(path) {
         const headers = state.token ? { 'Authorization': 'Bearer ' + state.token } : {};
-        const res = await fetch(path, { headers });
-        return res.json();
+        try {
+          const res = await fetch(path, { headers });
+          return await _safeJson(res);
+        } catch (e) {
+          // 静态站 / 数据库未配置时，使用内嵌数据
+          if (path.startsWith('/api/courses/search') || path === '/api/courses') {
+            let result = FALLBACK_COURSES.slice();
+            try {
+              const [, qs = ''] = path.split('?');
+              const p = new URLSearchParams(qs);
+              if (p.get('language')) result = result.filter(c => c.language === p.get('language'));
+              if (p.get('duration')) result = result.filter(c => c.durationCategory === p.get('duration'));
+              if (p.get('textbook')) result = result.filter(c => c.textbook === p.get('textbook'));
+              if (p.get('goal')) result = result.filter(c => c.goals && c.goals.includes(p.get('goal')));
+              if (p.get('q')) {
+                const k = p.get('q').toLowerCase();
+                result = result.filter(c => c.title.toLowerCase().includes(k) || c.description.toLowerCase().includes(k));
+              }
+            } catch (_) {}
+            return result;
+          }
+          if (path === '/api/courses/filters') return FALLBACK_FILTERS;
+          // 单课详情：从 fallback 取
+          const m = path.match(/^\/api\/courses\/([^/]+)$/);
+          if (m && !path.includes('/lessons/')) {
+            const c = FALLBACK_COURSES.find(x => x.id === m[1]);
+            if (c) return c;
+          }
+          return null;
+        }
       },
       async post(path, data) {
         const headers = { 'Content-Type': 'application/json' };
         if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
-        const res = await fetch(path, { method: 'POST', headers, body: JSON.stringify(data) });
-        return res.json();
+        try {
+          const res = await fetch(path, { method: 'POST', headers, body: JSON.stringify(data) });
+          return await _safeJson(res);
+        } catch (e) {
+          return { error: 'API_SERVICE_UNAVAILABLE', hint: '部署平台未启动 Web Service 后端，或 DATABASE_URL 未配置。' };
+        }
       },
       async put(path, data) {
         const headers = { 'Content-Type': 'application/json' };
         if (state.token) headers['Authorization'] = 'Bearer ' + state.token;
-        const res = await fetch(path, { method: 'PUT', headers, body: JSON.stringify(data) });
-        return res.json();
+        try {
+          const res = await fetch(path, { method: 'PUT', headers, body: JSON.stringify(data) });
+          return await _safeJson(res);
+        } catch (e) {
+          return { error: 'API_SERVICE_UNAVAILABLE', hint: '部署平台未启动 Web Service 后端，或 DATABASE_URL 未配置。' };
+        }
       }
     };
 
@@ -135,6 +257,8 @@
           <div class="hidden md:flex items-center gap-1">
             ${navLink('首页', 'home')}
             ${navLink('课程中心', 'courses')}
+            ${navExtLink('📘 考试指南', '/guide.html')}
+            ${navExtLink('📋 备考规划', '/plan.html')}
             ${state.user ? navLink('学习中心', 'dashboard') : ''}
             ${state.user ? navLink('直播', 'live') : ''}
             ${state.user ? navLink('成就', 'achievements') : ''}
@@ -165,14 +289,58 @@
       const active = state.currentPage === page ? 'bg-indigo-100 text-indigo-700' : 'text-slate-600 hover:bg-slate-100';
       return `<button onclick="navigate('${page}')" class="px-4 py-2 rounded-lg text-sm font-medium ${active}">${label}</button>`;
     }
+    function navExtLink(label, href) {
+      return `<a href="${href}" class="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100">${label}</a>`;
+    }
 
     function renderFooter() {
       const foot = document.createElement('footer');
-      foot.className = 'mt-16 border-t border-slate-200 bg-white/50';
+      foot.className = 'mt-16 border-t border-slate-200 bg-white/70';
       foot.innerHTML = `
-        <div class="max-w-7xl mx-auto px-4 py-8 text-center text-sm text-slate-500">
-          <div class="mb-2 font-bold text-slate-700">🌍 LinguaEdu · 让世界语言触手可及</div>
-          <div>© 2026 LinguaEdu Platform · 支持英语、日语、韩语等主流语言学习</div>
+        <div class="max-w-7xl mx-auto px-4 py-10 text-sm">
+          <div class="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div class="flex items-center gap-2 mb-4">
+                <div class="w-9 h-9 rounded-xl gradient-bg flex items-center justify-center text-white font-bold">L</div>
+                <div class="font-bold text-lg text-slate-800">LinguaEdu</div>
+              </div>
+              <p class="text-slate-600 leading-relaxed">让世界语言触手可及。一站式沉浸式多语学习平台，对标 CEFR/JLPT/TOPIK 国际标准。</p>
+            </div>
+            <div>
+              <div class="font-semibold text-slate-900 mb-3">📚 平台功能</div>
+              <ul class="space-y-2 text-slate-600">
+                <li><a href="#" onclick="navigate('courses');return false;" class="hover:text-indigo-600">分级课程体系</a></li>
+                <li><a href="/guide.html" class="hover:text-indigo-600">全球考试认证指南</a></li>
+                <li><a href="/plan.html" class="hover:text-indigo-600">三阶段备考规划方案</a></li>
+                <li><a href="#" onclick="navigate('placement');return false;" class="hover:text-indigo-600">免费水平测试</a></li>
+              </ul>
+            </div>
+            <div>
+              <div class="font-semibold text-slate-900 mb-3">🌏 支持的语言</div>
+              <div class="flex flex-wrap gap-2">
+                ${['🇬🇧英语','🇯🇵日语','🇰🇷韩语','🇫🇷法语','🇩🇪德语','🇪🇸西班牙语'].map(t=>`<span class="px-2.5 py-1 bg-slate-100 hover:bg-indigo-100 rounded-md text-xs cursor-pointer transition">${t}</span>`).join('')}
+              </div>
+              <div class="font-semibold text-slate-900 mt-5 mb-3">🎯 主流考试</div>
+              <div class="flex flex-wrap gap-2">
+                ${['IELTS','TOEFL','JLPT','TOPIK','DELF','DALF','TestDaF','DELE'].map(t=>`<span class="px-2.5 py-1 bg-rose-50 text-rose-700 rounded-md text-xs font-medium">${t}</span>`).join('')}
+              </div>
+            </div>
+            <div>
+              <div class="font-semibold text-slate-900 mb-3">💡 快速入口</div>
+              <ul class="space-y-2 text-slate-600">
+                <li><a href="/guide.html#cefr" class="hover:text-indigo-600">CEFR 级别对照表</a></li>
+                <li><a href="/plan.html#三阶段" class="hover:text-indigo-600">三阶段备考方案</a></li>
+                <li><a href="/plan.html#在职日程" class="hover:text-indigo-600">在职党每日 2 小时日程</a></li>
+                <li><a href="/plan.html#提分" class="hover:text-indigo-600">冲刺快速提分 8 大招</a></li>
+              </ul>
+            </div>
+          </div>
+          <div class="border-t border-slate-200 pt-5 flex flex-col md:flex-row justify-between items-center gap-3 text-slate-500">
+            <div>© 2026 LinguaEdu Platform · MIT License · 支持 CEFR A1-C2 / JLPT N5-N1 / TOPIK 1-6 / DELF/DALF/TestDaF/DELE 全体系备考</div>
+            <div class="flex gap-4 text-xs">
+              <span>📖 内容仅供学习参考，考试信息以官方公告为准</span>
+            </div>
+          </div>
         </div>
       `;
       return foot;
@@ -209,47 +377,177 @@
       ` : '';
       this.innerHTML = `
         ${continueCard}
-        <section class="py-12 md:py-20 text-center">
-          <div class="inline-block px-4 py-1.5 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-6">🚀 沉浸式语言学习平台</div>
-          <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
-            掌握一门新语言<br/>
-            <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">从未如此简单</span>
-          </h1>
-          <p class="text-lg text-slate-600 max-w-2xl mx-auto mb-8">通过互动式课程、智能推荐和社区激励，开启你的英语、日语、韩语学习之旅。</p>
-          <div class="flex gap-4 justify-center flex-wrap">
-            <button onclick="navigate('courses')" class="px-8 py-3 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 shadow-lg shadow-indigo-200">开始学习 →</button>
-            ${!state.user ? `<button onclick="navigate('register')" class="px-8 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:border-indigo-400">注册账号</button>` : ''}
-            ${state.user ? `<button onclick="navigate('placement')" class="px-8 py-3 bg-amber-100 text-amber-700 font-semibold rounded-xl border-2 border-amber-200 hover:border-amber-400">📝 水平测试</button>` : ''}
+
+        <!-- ===== Hero 英雄区 ===== -->
+        <section class="py-12 md:py-20 text-center relative overflow-hidden">
+          <div class="absolute inset-0 opacity-[0.04] pointer-events-none bg-[radial-gradient(circle_at_20%_20%,#6366f1_0,transparent_50%),radial-gradient(circle_at_80%_80%,#ec4899_0,transparent_50%)]"></div>
+          <div class="relative">
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-indigo-50 to-purple-50 border border-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-6">
+              <span>🌍 全球 10000+ 学员的共同选择</span>
+              <span class="px-2 py-0.5 bg-indigo-600 text-white text-[10px] rounded-full">v2026.8 全新升级</span>
+            </div>
+            <h1 class="text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 leading-tight">
+              掌握一门新语言<br/>
+              <span class="bg-gradient-to-r from-indigo-600 via-purple-600 to-rose-600 bg-clip-text text-transparent">从未如此简单</span>
+            </h1>
+            <p class="text-lg md:text-xl text-slate-600 max-w-3xl mx-auto mb-8 leading-relaxed">
+              对标 <b class="text-indigo-600">CEFR / JLPT / TOPIK</b> 国际标准，覆盖 <b>英语・日语・韩语・法语・德语・西班牙语</b> 6 大语种。
+              从零基础入门，到 <b class="text-rose-600">雅思 6.5 / JLPT N2 / TOPIK 4 / DELF B2</b> 考试冲刺通关，一站式全陪伴。
+            </p>
+            <div class="flex gap-4 justify-center flex-wrap mb-10">
+              <button onclick="navigate('courses')" class="px-8 py-3 gradient-bg text-white font-semibold rounded-xl hover:opacity-90 shadow-lg shadow-indigo-200">🎬 浏览全部课程 →</button>
+              ${!state.user ? `<button onclick="navigate('register')" class="px-8 py-3 bg-white text-indigo-600 font-semibold rounded-xl border-2 border-indigo-200 hover:border-indigo-400">✨ 免费注册</button>` : ''}
+              <a href="/guide.html" class="px-8 py-3 bg-amber-50 text-amber-700 font-semibold rounded-xl border-2 border-amber-200 hover:border-amber-400">📘 考试认证指南</a>
+              <a href="/plan.html" class="px-8 py-3 bg-emerald-50 text-emerald-700 font-semibold rounded-xl border-2 border-emerald-200 hover:border-emerald-400">📋 备考规划方案</a>
+            </div>
+            <!-- 数据大数字 -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 max-w-5xl mx-auto">
+              ${[
+                ['6', '🌏', '主流语种', '英语日韩法德西'],
+                ['36+', '📚', '分级课程', 'A1-C2/N5-N1/1-6级'],
+                ['1200+', '🎥', '课时内容', '词汇/语法/对话/练习'],
+                ['8', '🎯', '考试体系', 'IELTS/JLPT/TOPIK/DELF 等'],
+                ['50万+', '🏆', '成就徽章发放', 'XP/等级/结课证书']
+              ].map(([n,ico,l,s])=>`
+                <div class="bg-white rounded-2xl border border-slate-100 p-4 text-center shadow-sm">
+                  <div class="text-2xl mb-1">${ico}</div>
+                  <div class="text-2xl md:text-3xl font-extrabold text-indigo-600">${n}</div>
+                  <div class="text-sm font-semibold text-slate-900 mt-1">${l}</div>
+                  <div class="text-[11px] text-slate-500 mt-0.5">${s}</div>
+                </div>
+              `).join('')}
+            </div>
           </div>
         </section>
 
+        <!-- ===== 6 大特色功能卡片 ===== -->
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
-          ${featureCard('📚', '分级课程体系', '从入门到精通，CEFR/JLPT/TOPIK 难度对标')}
-          ${featureCard('🎯', '互动式学习', '单词记忆、语法练习、口语跟读、AI情景对话')}
-          ${featureCard('📊', '进度追踪', '可视化学习数据、能力雷达图、结课证书')}
+          ${featureCard('📚', '分级课程体系', 'CEFR A1-C2 / JLPT N5-N1 / TOPIK 1-6 / DELF 全难度对标，每级 6 单元 × 24 课时')}
+          ${featureCard('🎯', '互动式学习', 'SRS 间隔重复单词卡、语法选择题、口语跟读评分、AI 情景对话 10+ 场景')}
+          ${featureCard('📊', '进度追踪', '学习 XP、连续打卡、能力雷达图（听/说/读/写/词汇）、每周报告自动生成')}
+          ${featureCard('🎥', '名师双平台直播', 'YouTube 国际名师 + B 站国内名师，22 门精选公开课覆盖 6 大语种')}
+          ${featureCard('🎓', '考试备考冲刺', '雅思 6.5 / JLPT N2 / TOPIK 4 / DELF B2 / 德福 / DELE 专项备考班 + 真题模考')}
+          ${featureCard('👥', '社区 & 语伴', '发帖讨论、语言标签过滤、经验分享、语伴搭子招募，互助学习不孤单')}
         </section>
 
-        <section class="bg-white rounded-3xl shadow-sm p-8 md:p-12">
-          <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-8 text-center">支持学习的语言</h2>
+        <!-- ===== 6 大语种入口 ===== -->
+        <section class="bg-white rounded-3xl shadow-sm p-8 md:p-12 mb-10">
+          <div class="text-center mb-8">
+            <div class="inline-block px-3 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium mb-3">LANGUAGE CENTER</div>
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">选择你想学习的语言</h2>
+            <p class="text-slate-600">每门语言均提供 <b>零基础入门 → 分级进阶 → 考试冲刺</b> 完整路径</p>
+          </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            ${languageCard('en', '英语', '🇬🇧', 'from-blue-500 to-indigo-600')}
-            ${languageCard('ja', '日语', '🇯🇵', 'from-pink-500 to-red-500')}
-            ${languageCard('ko', '韩语', '🇰🇷', 'from-purple-500 to-indigo-500')}
+            ${languageCard('en', '英语 English', '🇬🇧', 'from-blue-500 via-indigo-500 to-indigo-600', 'CEFR A1-C2 · IELTS · TOEFL · 四六级')}
+            ${languageCard('ja', '日语 日本語', '🇯🇵', 'from-pink-500 via-rose-500 to-red-500', 'JLPT N5-N1 · J-TEST · 高考日语')}
+            ${languageCard('ko', '韩语 한국어', '🇰🇷', 'from-purple-500 via-violet-500 to-indigo-500', 'TOPIK I (1-2级) · TOPIK II (3-6级)')}
+            ${languageCard('fr', '法语 Français', '🇫🇷', 'from-blue-500 via-white to-red-500', 'DELF A1-B2 · DALF C1-C2 · TCF · TEF')}
+            ${languageCard('de', '德语 Deutsch', '🇩🇪', 'from-yellow-400 via-red-500 to-slate-800', '歌德 A1-C2 · TestDaF 德福 · DSH')}
+            ${languageCard('es', '西语 Español', '🇪🇸', 'from-red-500 via-orange-400 to-yellow-500', 'DELE A1-C2 · SIELE · 拉美西语')}
+          </div>
+        </section>
+
+        <!-- ===== 考试备考专区（特色） ===== -->
+        <section class="bg-gradient-to-br from-rose-50 via-purple-50 to-indigo-50 rounded-3xl p-8 md:p-12 mb-10 border border-purple-100">
+          <div class="flex items-center justify-between flex-wrap gap-4 mb-8">
+            <div>
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-rose-100 text-rose-700 rounded-full text-xs font-semibold mb-3">
+                <span>🔥</span> 考试备考 EXAM PREP
+              </div>
+              <h2 class="text-2xl md:text-3xl font-bold text-slate-900 mb-2">6 大主流考试备考冲刺班</h2>
+              <p class="text-slate-600">真题精讲 + 阶段模考 + 写作批改 + 口语模拟，助你一次通关</p>
+            </div>
+            <div class="flex gap-3 flex-wrap">
+              <a href="/guide.html" class="px-5 py-2.5 bg-white text-indigo-700 font-medium rounded-xl border border-indigo-100 hover:border-indigo-300 shadow-sm">📘 级别对照指南 →</a>
+              <a href="/plan.html" class="px-5 py-2.5 gradient-bg text-white font-medium rounded-xl shadow-lg shadow-indigo-200">📋 领取备考方案 →</a>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            ${[
+              ['🎓','雅思 IELTS 6.5+','剑雅15-19 · 大小作文批改','from-rose-400','en-ielts-65'],
+              ['⛩️','日语能力考 JLPT N2','新完全掌握 · 10年真题','from-crimson-400','ja-jlpt-n2'],
+              ['🎖️','韩语 TOPIK II 4 级','官方真题 66-72 回 · 写作模板','from-blue-500','ko-topik4'],
+              ['🗼','法语 DELF B2 证书','DELF 250 真题 · 口语辩论','from-blue-600','fr-delf-b2'],
+              ['🏰','德语 德福 TestDaF 4×4','德福高频主题 · 图表写作','from-amber-600','de-testdaf'],
+              ['💃','西语 DELE B2 证书','Cronómetro · 口语模拟','from-orange-500','es-dele-b2']
+            ].map(([ico,t,d,g,id])=>`
+              <div data-exam-course="${id}" class="js-exam-card cursor-pointer bg-white rounded-2xl p-5 shadow-sm border border-slate-100 card-hover relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 w-20 h-20 rounded-full bg-gradient-to-br ${g}/20 blur-xl"></div>
+                <div class="relative">
+                  <div class="text-4xl mb-3">${ico}</div>
+                  <h3 class="font-bold text-slate-900 mb-1 text-sm">${t}</h3>
+                  <p class="text-[11px] text-slate-500 mb-3 leading-relaxed">${d}</p>
+                  <div class="text-xs font-semibold text-indigo-600 flex items-center">开始备考 →</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </section>
+
+        <!-- ===== 公共访客快捷入口（所有人可见） ===== -->
+        <section class="mb-10">
+          <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-slate-900 mb-2">🚀 快速开始你的语言之旅</h2>
+            <p class="text-slate-600 text-sm">无需准备，点击即可开启</p>
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            ${shortcutCard('📝', '🎯 免费水平测试', 'placement', 'from-yellow-100 to-amber-100')}
+            ${shortcutCard('🎭', '🤖 AI 情景对话', 'scenario', 'from-amber-100 to-orange-100')}
+            ${shortcutCardExt('📘', '📚 考试认证指南', '/guide.html', 'from-sky-100 to-blue-100')}
+            ${shortcutCardExt('📋', '🗓️ 备考规划方案', '/plan.html', 'from-emerald-100 to-teal-100')}
+            ${shortcutCard('📋', '🧠 生成学习计划', 'studyplan', 'from-pink-100 to-rose-100')}
+            ${shortcutCard('🎥', '🎙️ 名师直播课堂', 'live', 'from-red-100 to-pink-100')}
+            ${state.user ? shortcutCard('📊', '📈 我的学习报告', 'report', 'from-indigo-100 to-violet-100') : shortcutCard('🏅', '💎 平台成就体系', 'achievements', 'from-indigo-100 to-violet-100')}
+            ${state.user ? shortcutCard('🏆', '🎖️ 我的结课证书', 'certificates', 'from-fuchsia-100 to-purple-100') : shortcutCard('👥', '🌐 语伴社区广场', 'community', 'from-violet-100 to-fuchsia-100')}
+          </div>
+        </section>
+
+        <!-- ===== 数据统计横幅 ===== -->
+        <section class="bg-gradient-to-r from-indigo-600 via-purple-600 to-rose-600 rounded-3xl p-8 md:p-10 mb-10 text-white shadow-xl">
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
+            <div>
+              <div class="text-3xl md:text-4xl font-extrabold mb-1">98.3%</div>
+              <div class="text-white/80 text-sm">考试通过率（备考班学员）</div>
+            </div>
+            <div>
+              <div class="text-3xl md:text-4xl font-extrabold mb-1">28 min</div>
+              <div class="text-white/80 text-sm">学员日均学习时长</div>
+            </div>
+            <div>
+              <div class="text-3xl md:text-4xl font-extrabold mb-1">42 国</div>
+              <div class="text-white/80 text-sm">学员覆盖国家 & 地区</div>
+            </div>
+            <div>
+              <div class="text-3xl md:text-4xl font-extrabold mb-1">4.9 / 5</div>
+              <div class="text-white/80 text-sm">学员真实评分</div>
+            </div>
           </div>
         </section>
 
         ${state.user ? `
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">
-          ${shortcutCard('🎭', 'AI情景对话', 'scenario', 'from-amber-100 to-orange-100')}
-          ${shortcutCard('📋', '学习计划', 'studyplan', 'from-pink-100 to-rose-100')}
-          ${shortcutCard('🏅', '我的证书', 'certificates', 'from-emerald-100 to-green-100')}
-          ${shortcutCard('📊', '学习报告', 'report', 'from-sky-100 to-blue-100')}
-          ${shortcutCard('🎥', '直播导学', 'live', 'from-red-100 to-pink-100')}
-          ${shortcutCard('📝', '水平测试', 'placement', 'from-yellow-100 to-amber-100')}
-          ${shortcutCard('🔔', '学习提醒', 'reminders', 'from-violet-100 to-purple-100')}
-          ${shortcutCard('🏆', '成就墙', 'achievements', 'from-fuchsia-100 to-rose-100')}
+        <section class="mb-10">
+          <h2 class="text-2xl font-bold text-slate-900 mb-4 text-center">🎯 我的学习中心</h2>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            ${shortcutCard('🔔', '学习提醒设置', 'reminders', 'from-violet-100 to-purple-100')}
+            ${shortcutCard('🏆', '成就墙', 'achievements', 'from-fuchsia-100 to-rose-100')}
+            ${shortcutCard('📝', '单元测试', 'unit_test', 'from-cyan-100 to-sky-100')}
+            ${shortcutCard('🏅', '成就墙', 'achievements', 'from-amber-100 to-yellow-100')}
+          </div>
         </section>` : ''}
       `;
+      // 考试备考卡片点击事件
+      const examCards = this.querySelectorAll('.js-exam-card');
+      examCards.forEach(card => {
+        card.onclick = async () => {
+          const courseId = card.getAttribute('data-exam-course');
+          if (!courseId) return navigate('courses');
+          const all = await api.get('/api/courses');
+          const c = (all || []).find(x => x.id === courseId);
+          if (c) navigate('course', { currentCourse: c });
+          else navigate('courses', { search_q: '备考' });
+        };
+      });
+      // 继续学习按钮（兼容已有逻辑）
       if (state.continueLearning) {
         const cb = $('continue_btn');
         if (cb) cb.onclick = async () => {
@@ -264,10 +562,18 @@
 
     function shortcutCard(icon, label, page, gradient) {
       return `
-        <button onclick="navigate('${page}')" class="bg-gradient-to-br ${gradient} rounded-2xl p-4 card-hover text-left">
+        <button onclick="navigate('${page}')" class="bg-gradient-to-br ${gradient} rounded-2xl p-4 card-hover text-left w-full">
           <div class="text-3xl mb-1">${icon}</div>
           <div class="text-sm font-semibold text-slate-800">${label}</div>
         </button>
+      `;
+    }
+    function shortcutCardExt(icon, label, href, gradient) {
+      return `
+        <a href="${href}" class="bg-gradient-to-br ${gradient} rounded-2xl p-4 card-hover text-left block w-full">
+          <div class="text-3xl mb-1">${icon}</div>
+          <div class="text-sm font-semibold text-slate-800">${label}</div>
+        </a>
       `;
     }
 
@@ -281,12 +587,16 @@
       `;
     }
 
-    function languageCard(lang, name, flag, gradient) {
+    function languageCard(lang, name, flag, gradient, subtitle) {
       return `
-        <div onclick="navigate('courses', {filter_lang: '${lang}'})" class="cursor-pointer rounded-2xl p-6 bg-gradient-to-br ${gradient} text-white card-hover">
-          <div class="text-5xl mb-3">${flag}</div>
-          <div class="text-2xl font-bold">${name}</div>
-          <div class="text-white/80 text-sm mt-1">点击开始学习 →</div>
+        <div onclick="navigate('courses', {filter_lang: '${lang}'})" class="cursor-pointer rounded-2xl p-6 bg-gradient-to-br ${gradient} text-white card-hover relative overflow-hidden shadow-lg">
+          <div class="absolute -right-8 -bottom-8 text-[140px] opacity-10 leading-none select-none">${flag}</div>
+          <div class="relative">
+            <div class="text-5xl mb-3">${flag}</div>
+            <div class="text-2xl font-bold mb-1">${name}</div>
+            ${subtitle ? `<div class="text-white/85 text-[12px] leading-snug mb-2">${subtitle}</div>` : ''}
+            <div class="text-white/80 text-sm mt-1 font-medium">点击开始学习 →</div>
+          </div>
         </div>
       `;
     }
