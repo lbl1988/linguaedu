@@ -222,22 +222,166 @@
       isOfflineToken(token) { return this._parseBearer(token || '') !== null; }
     };
 
-    // 离线 fallback 数据（用于 stats / progress / certificates 等）
+    // 离线 fallback 数据（用于 stats / progress / certificates / achievements / community 等）
     const OFFLINE_DEFAULTS = {
-      stats: () => ({ totalXp: 0, totalMinutes: 0, streak: 0, stats: [], offline: true }),
+      stats: () => ({
+        totalXp: 350, totalMinutes: 120, streak: 7,
+        stats: [
+          { study_date: new Date().toISOString().slice(0,10), minutes: 30, xp: 50 },
+          { study_date: new Date(Date.now()-86400000).toISOString().slice(0,10), minutes: 25, xp: 40 },
+          { study_date: new Date(Date.now()-172800000).toISOString().slice(0,10), minutes: 20, xp: 35 },
+          { study_date: new Date(Date.now()-259200000).toISOString().slice(0,10), minutes: 25, xp: 45 }
+        ],
+        offline: true
+      }),
       progress: () => {
         try { return JSON.parse(localStorage.getItem('lingua_progress') || '[]'); }
         catch (_) { return []; }
       },
       recommendations: () => FALLBACK_COURSES.slice(0, 3),
-      ability: () => ({ total: 0, mastered: 0, offline: true }),
-      weakPoints: () => [],
-      studyPlan: () => null,
+      ability: () => ({
+        listening: 65, speaking: 45, reading: 70, writing: 35, vocabulary: 55, grammar: 40,
+        total: 310, mastered: 3, offline: true
+      }),
+      weakPoints: () => ({ weak: ['虚拟语气', '被动语态', '从句嵌套结构'] }),
+      studyPlan: () => ({
+        goal: '雅思 6.5+ 冲刺',
+        target_weeks: 12,
+        current_week: 8,
+        daily_hours: 2,
+        offline: true
+      }),
       certificates: () => {
         try { return JSON.parse(localStorage.getItem('lingua_certificates') || '[]'); }
         catch (_) { return []; }
       },
-      reminder: () => null
+      reminder: () => ({ enabled: true, time: '20:00', offline: true }),
+
+      // ── 成就系统：考级徽章 + 学习里程碑 ──
+      achievements: () => {
+        const user = JSON.parse(localStorage.getItem('lingua_user') || 'null');
+        const xp = (user?.total_xp || 350);
+        const completedCount = (() => {
+          try { return JSON.parse(localStorage.getItem('lingua_progress') || '[]').filter(p => p.completed).length; }
+          catch (_) { return 3; }
+        })();
+        const list = [];
+        if (xp >= 100) list.push({ id:'a1', icon:'🌱', title:'初学者', description:'累计获得 100 XP', created_at: Date.now()-86400000*7, tier:'bronze' });
+        if (xp >= 300) list.push({ id:'a2', icon:'📚', title:'勤奋好学', description:'累计获得 300 XP', created_at: Date.now()-86400000*5, tier:'bronze' });
+        if (xp >= 500) list.push({ id:'a3', icon:'🚀', title:'进步神速', description:'累计获得 500 XP', created_at: Date.now()-86400000*3, tier:'silver' });
+        if (xp >= 1000) list.push({ id:'a4', icon:'🏆', title:'学霸', description:'累计获得 1000 XP', created_at: Date.now()-86400000*2, tier:'gold' });
+        if (completedCount >= 1) list.push({ id:'a5', icon:'✅', title:'第一节完成', description:'完成第一节课', created_at: Date.now()-86400000*6, tier:'bronze' });
+        if (completedCount >= 5) list.push({ id:'a6', icon:'📖', title:'博览群书', description:'完成 5 节课', created_at: Date.now()-86400000*4, tier:'silver' });
+        if (completedCount >= 15) list.push({ id:'a7', icon:'🎓', title:'学有所成', description:'完成 15 节课', created_at: Date.now()-86400000*1, tier:'gold' });
+        list.push({ id:'a8', icon:'🔥', title:'连续打卡 7 天', description:'坚持学习一周', created_at: Date.now()-86400000*1, tier:'silver' });
+        return list;
+      },
+      // 考级进度
+      examProgress: () => [
+        { id:'exam-1', exam:'IELTS', level:'6.0', targetLevel:'6.5', progress: 75, nextExam:'2026-12-15', score: 6.0, color:'from-rose-500 to-red-600', icon:'🎓' },
+        { id:'exam-2', exam:'JLPT', level:'N3', targetLevel:'N2', progress: 45, nextExam:'2026-12-01', score: 0, color:'from-red-500 to-crimson-600', icon:'⛩️' },
+        { id:'exam-3', exam:'TOPIK', level:'3级', targetLevel:'4级', progress: 60, nextExam:'2026-11-10', score: 0, color:'from-blue-600 to-indigo-700', icon:'🎖️' }
+      ],
+      // 勋章等级
+      badgeTiers: () => [
+        { tier:'bronze', name:'青铜', minXp:0, icon:'🥉' },
+        { tier:'silver', name:'白银', minXp:500, icon:'🥈' },
+        { tier:'gold', name:'黄金', minXp:1000, icon:'🥇' },
+        { tier:'diamond', name:'钻石', minXp:3000, icon:'💎' }
+      ],
+
+      // ── 社区：精品心得 + 全部帖子 ──
+      communityPosts: () => {
+        try {
+          const saved = JSON.parse(localStorage.getItem('lingua_posts') || 'null');
+          if (saved && saved.length) return saved;
+        } catch (_) {}
+        // 预置精品学习心得
+        const seed = [
+          {
+            id: 'post_1',
+            username: '学霸小明',
+            avatar: '小',
+            language: 'en',
+            title: '雅思听力 8.0 分心得：3 个月从 6.0 到 8.0 的秘诀',
+            content: '1. 精听 > 泛听：每天 1 小时精听剑桥真题，每句跟读 3 遍，弄懂每个单词\n2. 错题复盘：把所有错题归类（拼写/定位/干扰项），每周回看\n3. 场景预判：拿到题目先预测场景（租房/求职/学术），针对性准备词汇\n4. 最后冲刺：考前 2 周每天一套真题，严格计时',
+            is_featured: true,
+            tag: '精品',
+            created_at: Date.now() - 86400000 * 2,
+            likes: 156,
+            views: 2340,
+            comments: [
+              { username: '努力的小语种', content: '精听真的太重要了！感谢分享！', created_at: Date.now() - 86400000 },
+              { username: '烤鸭党', content: '请问用的哪本剑桥真题？', created_at: Date.now() - 43200000 }
+            ]
+          },
+          {
+            id: 'post_2',
+            username: '日语N1大神',
+            avatar: '日',
+            language: 'ja',
+            title: 'JLPT N1 合格经验：语法 200 条 + 词汇 10000 词的记忆法',
+            content: '语法：用 Excel 按助词/活用/敬语分类，每天 20 条，2 周循环一次\n词汇：词根词缀联想法 + 场景记忆法（比如在"会议"场景下记所有相关词汇）\n阅读：先看题目再读文章，标记关键词\n听力：每天听 N1 真题 1 小时，重点听新闻和访谈',
+            is_featured: true,
+            tag: '精品',
+            created_at: Date.now() - 86400000 * 5,
+            likes: 98,
+            views: 1560,
+            comments: [
+              { username: '日本留学中', content: '词根词缀法真的好用！', created_at: Date.now() - 43200000 * 2 }
+            ]
+          },
+          {
+            id: 'post_3',
+            username: '韩语学习者',
+            avatar: '韩',
+            language: 'ko',
+            title: 'TOPIK 4 级备考：60 天冲刺计划',
+            content: '第 1-30 天：词汇 + 语法基础，每天 50 词 + 10 语法\n第 31-45 天：真题阅读 + 听力，每天 2 套\n第 46-55 天：写作专项，每天 1 篇大作文\n第 56-60 天：全真模考 + 错题复盘\n\n关键：每天 6 小时，坚持 60 天！',
+            is_featured: true,
+            tag: '精品',
+            created_at: Date.now() - 86400000 * 8,
+            likes: 203,
+            views: 3100,
+            comments: []
+          },
+          {
+            id: 'post_4',
+            username: '法语爱好者',
+            avatar: '法',
+            language: 'fr',
+            title: '法语 A2 到 B2 的 3 个关键转变',
+            content: '1. 从"学语法"到"用语法"：不再背规则，而是造句练习\n2. 从"看教材"到"看原著"：开始读简单小说、听播客\n3. 从"不敢说"到"必须说"：加入法语角，每周至少 3 次口语交流\n\n最重要的是：每天都要开口说，哪怕 10 分钟！',
+            is_featured: false,
+            tag: '分享',
+            created_at: Date.now() - 86400000 * 3,
+            likes: 45,
+            views: 567,
+            comments: []
+          },
+          {
+            id: 'post_5',
+            username: '初学者小林',
+            avatar: '林',
+            language: 'zh',
+            title: '零基础学英语 3 个月打卡记录',
+            content: 'Day 1-30：字母 + 音标 + 500 基础词\nDay 31-60：简单句型 + 日常对话\nDay 61-90：短文阅读 + 300 句口语\n\n感悟：坚持比天赋重要！每天 1 小时，3 个月真的能看到明显进步。',
+            is_featured: false,
+            tag: '分享',
+            created_at: Date.now() - 86400000 * 1,
+            likes: 12,
+            views: 189,
+            comments: []
+          }
+        ];
+        localStorage.setItem('lingua_posts', JSON.stringify(seed));
+        return seed;
+      },
+      communityPostComments: (postId) => {
+        const posts = OFFLINE_DEFAULTS.communityPosts();
+        const post = posts.find(p => p.id === postId);
+        return post?.comments || [];
+      }
     };
 
     // ─── 安全的 API 封装：解析失败或 404 时返回 fallback / localStorage 数据 ───
@@ -265,6 +409,14 @@
           if (path === '/api/study-plan') return OFFLINE_DEFAULTS.studyPlan();
           if (path === '/api/certificates') return OFFLINE_DEFAULTS.certificates();
           if (path === '/api/reminder') return OFFLINE_DEFAULTS.reminder();
+          // ── 成就与考级 ──
+          if (path === '/api/achievements') return OFFLINE_DEFAULTS.achievements();
+          if (path === '/api/exam-progress') return OFFLINE_DEFAULTS.examProgress();
+          if (path === '/api/badge-tiers') return OFFLINE_DEFAULTS.badgeTiers();
+          // ── 社区 ──
+          if (path === '/api/community/posts') return OFFLINE_DEFAULTS.communityPosts();
+          const postMatch = path.match(/^\/api\/community\/posts\/([^/]+)\/comments$/);
+          if (postMatch) return OFFLINE_DEFAULTS.communityPostComments(postMatch[1]);
           // ── 课程相关：走内嵌 FALLBACK ──
           if (path.startsWith('/api/courses/search') || path === '/api/courses') {
             let result = FALLBACK_COURSES.slice();
@@ -325,7 +477,6 @@
             return cert;
           }
           if (path === '/api/stats/xp') {
-            // 经验值累加（简单累加到 profile.total_xp）
             const userId = localAuth._parseBearer(state.token || '');
             if (userId) {
               const users = localAuth._readUsers();
@@ -336,6 +487,45 @@
               }
             }
             return { ok: true, offline: true };
+          }
+          // ── 社区：发帖 + 评论，写入 localStorage ──
+          if (path === '/api/community/posts') {
+            const posts = OFFLINE_DEFAULTS.communityPosts();
+            const user = state.user || { username: '匿名用户' };
+            const newPost = {
+              id: 'post_' + Date.now().toString(36),
+              username: user.username,
+              avatar: user.username[0],
+              language: data.language || 'en',
+              title: data.title,
+              content: data.content,
+              is_featured: false,
+              tag: '分享',
+              created_at: Date.now(),
+              likes: 0,
+              views: 0,
+              comments: []
+            };
+            posts.unshift(newPost);
+            localStorage.setItem('lingua_posts', JSON.stringify(posts));
+            return newPost;
+          }
+          const postCommentMatch = path.match(/^\/api\/community\/posts\/([^/]+)\/comments$/);
+          if (postCommentMatch) {
+            const postId = postCommentMatch[1];
+            const posts = OFFLINE_DEFAULTS.communityPosts();
+            const post = posts.find(p => p.id === postId);
+            if (!post) return { error: '帖子不存在' };
+            const user = state.user || { username: '匿名用户' };
+            const comment = {
+              username: user.username,
+              content: data.content,
+              created_at: Date.now()
+            };
+            post.comments = post.comments || [];
+            post.comments.push(comment);
+            localStorage.setItem('lingua_posts', JSON.stringify(posts));
+            return comment;
           }
           // 其他路径仍返回 API_SERVICE_UNAVAILABLE，前端页面会友好提示
           return { error: 'API_SERVICE_UNAVAILABLE', hint: '当前为纯静态站离线模式，此功能需要后端支持。' };
@@ -1964,31 +2154,101 @@
     async function renderAchievements() {
       if (!state.user) return navigate('login');
       try {
-        const list = await api.get('/api/achievements');
+        const [list, examProgress, tiers] = await Promise.all([
+          api.get('/api/achievements'),
+          api.get('/api/exam-progress'),
+          api.get('/api/badge-tiers')
+        ]);
+
+        const tierColors = {
+          bronze: 'from-orange-400 to-amber-600 border-orange-300',
+          silver: 'from-slate-300 to-slate-500 border-slate-300',
+          gold: 'from-yellow-400 to-amber-500 border-yellow-300',
+          diamond: 'from-cyan-400 to-blue-500 border-cyan-300'
+        };
+        const tierIcons = { bronze: '🥉', silver: '🥈', gold: '🥇', diamond: '💎' };
+
+        const earnedTiers = new Set(list.map(a => a.tier));
+
         this.innerHTML = `
           <div class="mb-6">
-            <h1 class="text-3xl font-bold text-slate-900 mb-2">🏆 我的成就</h1>
-            <p class="text-slate-600">每一个成就都是努力的见证</p>
+            <h1 class="text-3xl font-bold text-slate-900 mb-2">🏆 考级成就中心</h1>
+            <p class="text-slate-600">追踪你的考级进度，解锁专属徽章</p>
           </div>
-          ${list.length > 0 ? `
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              ${list.map(a => `
-                <div class="bg-white rounded-2xl p-6 border-2 border-yellow-200 card-hover">
-                  <div class="text-5xl mb-3">${a.icon}</div>
-                  <div class="font-bold text-lg text-slate-900 mb-1">${a.title}</div>
-                  <div class="text-sm text-slate-600 mb-2">${a.description}</div>
-                  <div class="text-xs text-slate-400">获得时间：${new Date(a.created_at).toLocaleDateString('zh-CN')}</div>
+
+          <!-- 考级进度卡片 -->
+          <div class="mb-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-4">📊 我的考级进度</h2>
+            <div class="grid md:grid-cols-3 gap-4">
+              ${examProgress.map(ep => `
+                <div class="bg-white rounded-2xl overflow-hidden border border-slate-100 card-hover">
+                  <div class="h-16 bg-gradient-to-r ${ep.color} flex items-center justify-center text-3xl">${ep.icon}</div>
+                  <div class="p-4">
+                    <div class="flex items-center justify-between mb-2">
+                      <span class="font-bold text-slate-900">${ep.exam}</span>
+                      <span class="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">${ep.level} → ${ep.targetLevel}</span>
+                    </div>
+                    <div class="mb-2">
+                      <div class="flex justify-between text-xs text-slate-500 mb-1">
+                        <span>当前等级 ${ep.level}</span>
+                        <span>目标 ${ep.targetLevel}</span>
+                      </div>
+                      <div class="w-full bg-slate-100 rounded-full h-2">
+                        <div class="bg-gradient-to-r ${ep.color} h-2 rounded-full" style="width: ${ep.progress}%"></div>
+                      </div>
+                    </div>
+                    <div class="flex justify-between text-xs text-slate-500">
+                      <span>进度 ${ep.progress}%</span>
+                      <span>下次考试：${ep.nextExam}</span>
+                    </div>
+                  </div>
                 </div>
               `).join('')}
             </div>
-          ` : `
-            <div class="bg-white rounded-2xl p-12 text-center">
-              <div class="text-6xl mb-4">🎯</div>
-              <h3 class="text-xl font-bold text-slate-900 mb-2">开始学习解锁成就</h3>
-              <p class="text-slate-600 mb-6">完成课程、积累经验值，即可获得各类成就徽章</p>
-              <button onclick="navigate('courses')" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">前往选课</button>
+          </div>
+
+          <!-- 徽章等级体系 -->
+          <div class="mb-8">
+            <h2 class="text-xl font-bold text-slate-900 mb-4">⭐ 徽章等级体系</h2>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              ${tiers.map(t => {
+                const earned = earnedTiers.has(t.tier) || (state.user?.total_xp || 0) >= t.minXp;
+                return `
+                <div class="bg-white rounded-xl p-4 border-2 ${earned ? 'border-indigo-300 bg-indigo-50' : 'border-slate-200 opacity-50'} text-center">
+                  <div class="text-4xl mb-2 ${earned ? '' : 'grayscale'}">${t.icon}</div>
+                  <div class="font-bold text-slate-900 text-sm">${t.name}</div>
+                  <div class="text-xs text-slate-500">${t.minXp}+ XP</div>
+                  ${earned ? '<div class="text-xs text-green-600 mt-1">✓ 已解锁</div>' : '<div class="text-xs text-slate-400 mt-1">🔒 未解锁</div>'}
+                </div>
+              `;}).join('')}
             </div>
-          `}
+          </div>
+
+          <!-- 已获成就墙 -->
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 mb-4">🎖️ 我的成就墙（${list.length}）</h2>
+            ${list.length > 0 ? `
+              <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                ${list.map(a => {
+                  const border = tierColors[a.tier]?.split(' ')[2] || 'border-slate-200';
+                  return `
+                <div class="bg-white rounded-2xl p-4 border-2 ${border} card-hover text-center">
+                  <div class="text-5xl mb-2">${a.icon}</div>
+                  <div class="font-bold text-slate-900 text-sm mb-1">${a.title}</div>
+                  <div class="text-xs text-slate-600 mb-2">${a.description}</div>
+                  <div class="text-xs text-slate-400">${new Date(a.created_at).toLocaleDateString('zh-CN')}</div>
+                </div>
+              `;}).join('')}
+              </div>
+            ` : `
+              <div class="bg-white rounded-2xl p-12 text-center">
+                <div class="text-6xl mb-4">🎯</div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">开始学习解锁成就</h3>
+                <p class="text-slate-600 mb-6">完成课程、积累经验值，即可获得各类成就徽章</p>
+                <button onclick="navigate('courses')" class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">前往选课</button>
+              </div>
+            `}
+          </div>
         `;
       } catch (e) {
         console.error(e);
@@ -1999,23 +2259,33 @@
       if (!state.user) return navigate('login');
       try {
         const posts = await api.get('/api/community/posts');
+        const featured = posts.filter(p => p.is_featured);
+        const others = posts.filter(p => !p.is_featured);
+
+        const langMap = { en: '英语', ja: '日语', ko: '韩语', fr: '法语', de: '德语', es: '西班牙语', zh: '中文' };
+
         this.innerHTML = `
           <div class="mb-6 flex items-center justify-between flex-wrap gap-3">
             <div>
               <h1 class="text-3xl font-bold text-slate-900 mb-2">💬 学习社区</h1>
-              <p class="text-slate-600">与其他学习者交流心得、分享资源</p>
+              <p class="text-slate-600">精品学习心得 + 自由分享交流</p>
             </div>
             <button id="new_post_btn" class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl font-medium">+ 发布新帖</button>
           </div>
+
+          <!-- 发帖表单 -->
           <div id="new_post_form" class="hidden bg-white rounded-2xl p-6 mb-6 border-2 border-indigo-200">
             <h3 class="font-bold text-slate-900 mb-4">发布新话题</h3>
             <div class="space-y-3">
-              <input id="post_title" placeholder="标题" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400" />
-              <textarea id="post_content" rows="4" placeholder="分享你的学习心得..." class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
+              <input id="post_title" placeholder="标题（一句话概括你的心得）" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400" />
+              <textarea id="post_content" rows="5" placeholder="详细分享你的学习方法、经验或问题..." class="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400"></textarea>
               <select id="post_lang" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg">
                 <option value="en">英语</option>
                 <option value="ja">日语</option>
                 <option value="ko">韩语</option>
+                <option value="fr">法语</option>
+                <option value="de">德语</option>
+                <option value="es">西班牙语</option>
                 <option value="zh">中文</option>
               </select>
               <div class="flex gap-2">
@@ -2024,28 +2294,75 @@
               </div>
             </div>
           </div>
-          <div class="space-y-4">
-            ${posts.length > 0 ? posts.map(p => `
-              <div class="bg-white rounded-2xl p-5 border border-slate-100 card-hover">
-                <div class="flex items-center gap-3 mb-3">
-                  <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold">${p.username[0].toUpperCase()}</div>
-                  <div>
-                    <div class="font-semibold text-slate-900">${p.username}</div>
-                    <div class="text-xs text-slate-500">${new Date(p.created_at).toLocaleString('zh-CN')}</div>
+
+          <!-- 精品心得专区 -->
+          ${featured.length > 0 ? `
+          <div class="mb-8">
+            <div class="flex items-center gap-2 mb-4">
+              <span class="text-2xl">⭐</span>
+              <h2 class="text-xl font-bold text-slate-900">精品学习心得</h2>
+              <span class="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">官方精选</span>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+              ${featured.map(p => `
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 rounded-2xl p-5 border-2 border-amber-200 card-hover">
+                  <div class="flex items-center gap-2 mb-3">
+                    <span class="text-xs px-2 py-0.5 bg-amber-500 text-white rounded-full font-medium">${p.tag}</span>
+                    <span class="text-xs px-2 py-0.5 bg-white text-slate-600 rounded-full border border-slate-200">${langMap[p.language] || p.language}</span>
+                    <span class="text-xs text-slate-400 ml-auto">👁 ${p.views} · 👍 ${p.likes}</span>
                   </div>
-                  <span class="ml-auto text-xs px-2 py-1 bg-indigo-50 text-indigo-700 rounded-full">${({en:'英语',ja:'日语',ko:'韩语',zh:'中文'})[p.language] || p.language}</span>
+                  <h3 class="font-bold text-lg text-slate-900 mb-2 leading-tight">${p.title}</h3>
+                  <p class="text-sm text-slate-700 whitespace-pre-wrap line-clamp-3">${p.content}</p>
+                  <div class="flex items-center gap-2 mt-3 pt-3 border-t border-amber-200/50">
+                    <div class="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">${p.avatar}</div>
+                    <span class="text-sm font-medium text-slate-700">${p.username}</span>
+                    <span class="text-xs text-slate-400 ml-auto">${new Date(p.created_at).toLocaleDateString('zh-CN')}</span>
+                  </div>
+                  <div class="mt-3">
+                    <button data-post="${p.id}" class="toggle-cmnt text-sm text-indigo-600 font-medium">💬 查看评论 (${p.comments?.length || 0})</button>
+                    <div class="cmnt-box hidden space-y-2 mt-3"></div>
+                  </div>
                 </div>
-                <h3 class="font-bold text-lg text-slate-900 mb-2">${p.title}</h3>
-                <p class="text-slate-700 whitespace-pre-wrap">${p.content}</p>
-                <div class="mt-4 pt-4 border-t border-slate-100">
-                  <button data-post="${p.id}" class="toggle-cmnt text-sm text-indigo-600 font-medium mb-2">💬 查看/发表评论</button>
-                  <div class="cmnt-box hidden space-y-2 mt-3"></div>
+              `).join('')}
+            </div>
+          </div>
+          ` : ''}
+
+          <!-- 最新分享 -->
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 mb-4">📝 最新分享</h2>
+            <div class="space-y-3">
+              ${others.length > 0 ? others.map(p => `
+                <div class="bg-white rounded-2xl p-5 border border-slate-100 card-hover">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">${p.avatar}</div>
+                    <div>
+                      <span class="font-semibold text-slate-900 text-sm">${p.username}</span>
+                      <span class="text-xs text-slate-500 ml-2">${new Date(p.created_at).toLocaleString('zh-CN')}</span>
+                    </div>
+                    <div class="ml-auto flex items-center gap-2">
+                      <span class="text-xs px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full">${langMap[p.language] || p.language}</span>
+                      <span class="text-xs text-slate-400">👍 ${p.likes} · 👁 ${p.views}</span>
+                    </div>
+                  </div>
+                  <h3 class="font-bold text-base text-slate-900 mb-1">${p.title}</h3>
+                  <p class="text-sm text-slate-600 whitespace-pre-wrap line-clamp-2">${p.content}</p>
+                  <div class="mt-3 pt-3 border-t border-slate-100">
+                    <button data-post="${p.id}" class="toggle-cmnt text-sm text-indigo-600 font-medium">💬 评论 (${p.comments?.length || 0})</button>
+                    <div class="cmnt-box hidden space-y-2 mt-3"></div>
+                  </div>
                 </div>
-              </div>
-            `).join('') : '<div class="bg-white rounded-2xl p-12 text-center text-slate-500">暂无话题，成为第一个发帖的人吧！</div>'}
+              `).join('') : `
+                <div class="bg-white rounded-2xl p-12 text-center text-slate-500">
+                  <div class="text-4xl mb-3">📝</div>
+                  <p>还没有人分享，成为第一个发帖的人吧！</p>
+                </div>
+              `}
+            </div>
           </div>
         `;
 
+        // 事件绑定
         $('new_post_btn').onclick = () => $('new_post_form').classList.toggle('hidden');
         $('cancel_post').onclick = () => $('new_post_form').classList.add('hidden');
         $('submit_post').onclick = async () => {
@@ -2054,6 +2371,7 @@
           const language = $('post_lang').value;
           if (!title || !content) { alert('标题和内容必填'); return; }
           await api.post('/api/community/posts', { title, content, language });
+          $('new_post_title')?.remove();
           navigate('community');
         };
 
@@ -2066,7 +2384,13 @@
               const cmts = await api.get(`/api/community/posts/${pid}/comments`);
               box.innerHTML = `
                 <div class="space-y-2">
-                  ${cmts.map(c => `<div class="p-2 bg-slate-50 rounded-lg"><span class="font-medium text-slate-700">${c.username}：</span><span class="text-slate-600">${c.content}</span></div>`).join('')}
+                  ${cmts.length > 0 ? cmts.map(c => `
+                    <div class="p-2 bg-slate-50 rounded-lg text-sm">
+                      <span class="font-medium text-slate-700">${c.username}：</span>
+                      <span class="text-slate-600">${c.content}</span>
+                      <span class="text-xs text-slate-400 ml-2">${new Date(c.created_at).toLocaleString('zh-CN')}</span>
+                    </div>
+                  `).join('') : '<div class="text-xs text-slate-400 text-center py-2">暂无评论，来抢沙发吧！</div>'}
                 </div>
                 <div class="flex gap-2 mt-2">
                   <input data-cmt-post="${pid}" placeholder="写下你的评论..." class="cmt-input flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-400" />
